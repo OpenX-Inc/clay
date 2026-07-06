@@ -65,6 +65,62 @@ def generate(
 
 
 @app.command()
+def deploy(
+    provider: str = typer.Argument(help="Where to deploy: modal | aws | gcp"),
+    name: str = typer.Option("", help="Named instance (default from config)"),
+    gpu: str = typer.Option("", help="GPU type, e.g. A100-80GB (default from config)"),
+    model: str = typer.Option("", help="3D provider the backend serves (default from config)"),
+    scaledown: int = typer.Option(0, help="Idle seconds before scaledown (default from config)"),
+    region: str = typer.Option("", help="Cloud region (aws/gcp)"),
+    modal_token_id: str = typer.Option("", help="Modal token id (scoped to this deploy only)"),
+    modal_token_secret: str = typer.Option(
+        "", help="Modal token secret (scoped to this deploy only)"
+    ),
+    config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+) -> None:
+    """Deploy the GPU backend as a named instance, then print its base URL."""
+    from clay.config import load_config
+    from clay.deploy import DeploySpec, available_providers, get_deployer
+
+    cfg = load_config(config_path)
+    try:
+        deployer = get_deployer(provider)
+    except ValueError:
+        console.print(
+            f"[red]Unknown provider '{provider}'.[/] Available: "
+            f"{', '.join(available_providers())}"
+        )
+        raise typer.Exit(1) from None
+
+    creds = {}
+    if modal_token_id:
+        creds["token_id"] = modal_token_id
+    if modal_token_secret:
+        creds["token_secret"] = modal_token_secret
+
+    spec = DeploySpec(
+        name=name or cfg.deploy.name,
+        gpu=gpu or cfg.deploy.gpu,
+        model=model or cfg.providers.model,
+        scaledown_window=scaledown or cfg.deploy.scaledown_window,
+        region=region,
+        credentials=creds,
+    )
+    console.print(f"[bold green]Clay[/] — deploying [cyan]{spec.name}[/] to {provider}…")
+    result = deployer.deploy(spec)
+
+    if result.ok:
+        console.print(f"[bold green]✓ deployed[/] — {result.detail}")
+        if result.endpoint_url:
+            console.print(f"  base URL: [bold]{result.endpoint_url}[/]")
+    elif result.status == "manual_required":
+        console.print(f"[yellow]manual steps required[/] — {result.detail}")
+    else:
+        console.print(f"[red]deploy failed[/] — {result.detail}")
+        raise typer.Exit(1)
+
+
+@app.command()
 def providers() -> None:
     """List the available 3D model providers."""
     from clay.providers import available_providers, get_provider
