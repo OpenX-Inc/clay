@@ -65,15 +65,19 @@ def build_trellis_image() -> modal.Image:
         # Custom CUDA extensions (compiled with nvcc on the CPU builder).
         # --no-build-isolation so the builds see the already-installed torch;
         # that means the build backend (setuptools/wheel) must be present too.
+        # CC/CXX are forced to gcc/g++ (Modal's standalone Python reports clang
+        # via sysconfig, but only build-essential's gcc is installed).
         .run_commands("pip install -U pip setuptools wheel")
         .run_commands(
-            "pip install --no-build-isolation git+https://github.com/NVlabs/nvdiffrast.git",
+            "CC=gcc CXX=g++ pip install --no-build-isolation "
+            "git+https://github.com/NVlabs/nvdiffrast.git",
             "git clone --recurse-submodules https://github.com/JeffreyXiang/diffoctreerast.git "
-            "/tmp/diffoctreerast && pip install --no-build-isolation /tmp/diffoctreerast",
+            "/tmp/diffoctreerast && CC=gcc CXX=g++ pip install --no-build-isolation "
+            "/tmp/diffoctreerast",
             "git clone https://github.com/autonomousvision/mip-splatting.git /tmp/mip-splatting "
-            "&& pip install --no-build-isolation "
+            "&& CC=gcc CXX=g++ pip install --no-build-isolation "
             "/tmp/mip-splatting/submodules/diff-gaussian-rasterization/",
-            "pip install --no-build-isolation /trellis/extensions/vox2seq/",
+            "CC=gcc CXX=g++ pip install --no-build-isolation /trellis/extensions/vox2seq/",
         )
         .add_local_python_source("clay")
     )
