@@ -16,8 +16,8 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
       - name: Install (dev extras)
-        run: uv pip install --system -e ".[dev]"
+        run: uv sync --extra dev
       - name: Ruff
-        run: ruff check src tests
+        run: uv run ruff check src tests
       - name: Pytest
-        run: pytest -q
+        run: uv run pytest -q
