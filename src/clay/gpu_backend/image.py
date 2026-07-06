@@ -77,7 +77,6 @@ def build_trellis_image() -> modal.Image:
             "git clone https://github.com/autonomousvision/mip-splatting.git /tmp/mip-splatting "
             "&& CC=gcc CXX=g++ pip install --no-build-isolation "
             "/tmp/mip-splatting/submodules/diff-gaussian-rasterization/",
-            "CC=gcc CXX=g++ pip install --no-build-isolation /trellis/extensions/vox2seq/",
         )
         .add_local_python_source("clay")
     )
