@@ -25,29 +25,13 @@ from pathlib import Path
 
 import modal
 
-GPU = os.environ.get("CLAY_BENCH_GPU", "A100-80GB")
+from clay.gpu_backend.image import GPU, build_trellis_image
+
 RATE_USD_HR = float(os.environ.get("CLAY_BENCH_RATE", "1.90"))
 
 app = modal.App("openx-clay-benchmark")
 
-image = (
-    modal.Image.debian_slim(python_version="3.12")
-    .apt_install("git", "libgl1", "libglib2.0-0")
-    .pip_install(
-        "torch>=2.6.0",
-        "transformers>=4.50.0",
-        "diffusers>=0.33.0",
-        "accelerate>=1.5.0",
-        "trimesh>=4.5.0",
-        "xatlas>=0.0.9",
-        "fast-simplification>=0.1.7",
-        "pygltflib>=1.16.0",
-        "pillow",
-        "numpy",
-    )
-    .run_commands("pip install git+https://github.com/microsoft/TRELLIS.git")
-    .add_local_python_source("clay")
-)
+image = build_trellis_image()
 
 volume = modal.Volume.from_name("clay-bench-weights", create_if_missing=True)
 
