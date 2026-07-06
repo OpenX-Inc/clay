@@ -1,0 +1,75 @@
+"""The GPU image for TRELLIS-2 — the real from-source build.
+
+TRELLIS is **not** pip-installable: it runs in-place from its cloned repo and
+depends on custom CUDA extensions that must be compiled (``nvdiffrast``,
+``diffoctreerast``, ``diff-gaussian-rasterization``, ``vox2seq``) plus prebuilt
+wheels (``xformers``, ``spconv``, ``kaolin``). This module builds that image once
+so the Modal deploy server and the benchmark harness share one definition.
+
+Pinned to CUDA 12.1 + torch 2.4.0 (the combo with kaolin/xformers wheels). The
+extensions compile on Modal's CPU builder using ``TORCH_CUDA_ARCH_LIST`` (A100 =
+sm_80); no GPU is needed to build, only to run.
+"""
+
+from __future__ import annotations
+
+import os
+
+import modal
+
+GPU = os.environ.get("CLAY_BENCH_GPU", "A100-80GB")
+# Target GPU compute capability for the CUDA extension builds. A100 = 8.0.
+CUDA_ARCH = os.environ.get("CLAY_CUDA_ARCH", "8.0")
+TORCH_INDEX = "https://download.pytorch.org/whl/cu121"
+KAOLIN_LINKS = "https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.4.0_cu121.html"
+# utils3d pinned to the commit TRELLIS requires.
+UTILS3D = "git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8"
+
+
+def build_trellis_image() -> modal.Image:
+    return (
+        modal.Image.from_registry(
+            "nvidia/cuda:12.1.1-devel-ubuntu22.04", add_python="3.11"
+        )
+        .apt_install(
+            "git", "build-essential", "ninja-build", "ffmpeg",
+            "libgl1", "libglib2.0-0", "libegl1", "libgles2",
+        )
+        .env(
+            {
+                "TORCH_CUDA_ARCH_LIST": CUDA_ARCH,
+                "ATTN_BACKEND": "xformers",
+                "SPCONV_ALGO": "native",
+                "PYTHONPATH": "/trellis",
+                "HF_HOME": "/models",
+                "U2NET_HOME": "/models/u2net",
+            }
+        )
+        # torch first (matched to CUDA 12.1).
+        .pip_install("torch==2.4.0", "torchvision==0.19.0", index_url=TORCH_INDEX)
+        # TRELLIS "basic" deps.
+        .pip_install(
+            "numpy<2", "pillow", "imageio", "imageio-ffmpeg", "tqdm", "easydict",
+            "opencv-python-headless", "scipy", "ninja", "rembg", "onnxruntime",
+            "trimesh", "xatlas", "pyvista", "pymeshfix", "igraph", "transformers",
+            "safetensors", "einops", "open3d", "fastapi[standard]", UTILS3D,
+        )
+        # Prebuilt wheels: attention backend, sparse conv, kaolin.
+        .pip_install("xformers==0.0.27.post2", index_url=TORCH_INDEX)
+        .pip_install("spconv-cu120")
+        .pip_install("kaolin", find_links=KAOLIN_LINKS)
+        # Clone TRELLIS (run in-place) + the extension sources.
+        .run_commands(
+            "git clone --recurse-submodules https://github.com/microsoft/TRELLIS.git /trellis"
+        )
+        # Custom CUDA extensions (compiled with nvcc on the CPU builder).
+        .run_commands(
+            "pip install git+https://github.com/NVlabs/nvdiffrast.git",
+            "git clone --recurse-submodules https://github.com/JeffreyXiang/diffoctreerast.git "
+            "/tmp/diffoctreerast && pip install /tmp/diffoctreerast",
+            "git clone https://github.com/autonomousvision/mip-splatting.git /tmp/mip-splatting "
+            "&& pip install /tmp/mip-splatting/submodules/diff-gaussian-rasterization/",
+            "pip install /trellis/extensions/vox2seq/",
+        )
+        .add_local_python_source("clay")
+    )
