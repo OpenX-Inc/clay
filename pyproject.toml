@@ -27,6 +27,7 @@ postprocess = [
     "xatlas>=0.0.9",
     "fast-simplification>=0.1.7",
     "pygltflib>=1.16.0",
+    "pillow>=10.0.0",
 ]
 # GPU backend / model runtime (TRELLIS-2, Hunyuan3D, Hi3DGen).
 gpu = [
