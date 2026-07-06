@@ -1,0 +1,10 @@
+{
+  "description": "Default Clay benchmark matrix. Drop object images into benchmarks/assets/ matching the 'image' fields. The chair sweep isolates the post-processing differentiator (same raw mesh, three triangle budgets).",
+  "cases": [
+    {"name": "chair-5k",   "mode": "image", "provider": "trellis2", "image": "chair.png",     "target_tris": 5000,  "format": "glb"},
+    {"name": "chair-20k",  "mode": "image", "provider": "trellis2", "image": "chair.png",     "target_tris": 20000, "format": "glb"},
+    {"name": "chair-60k",  "mode": "image", "provider": "trellis2", "image": "chair.png",     "target_tris": 60000, "format": "glb"},
+    {"name": "character",  "mode": "image", "provider": "trellis2", "image": "character.png", "target_tris": 30000, "format": "glb"},
+    {"name": "prop",       "mode": "image", "provider": "trellis2", "image": "prop.png",      "target_tris": 15000, "format": "glb"}
+  ]
+}
