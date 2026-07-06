@@ -150,14 +150,14 @@ def main():
     """Single smoke case — proves the loop before spending on a full matrix."""
     results_dir = Path("benchmarks/results")
     results_dir.mkdir(parents=True, exist_ok=True)
-    case = {"name": "smoke", "mode": "image", "provider": "trellis2",
-            "image": "smoke.png", "target_tris": 20000, "format": "glb"}
+    case = {"name": "pot", "mode": "image", "provider": "trellis2",
+            "image": "pot.png", "target_tris": 20000, "format": "glb"}
 
     print(f"🏺 Clay benchmark — {case['name']} on {GPU}")
     try:
         img = _load_image(case)
     except FileNotFoundError as err:
-        print(f"✗ {err}\n  Drop an object image at benchmarks/assets/smoke.png first.")
+        print(f"✗ {err}\n  Drop an object image at benchmarks/assets/pot.png first.")
         return
 
     result = bench_case.remote(case, img)

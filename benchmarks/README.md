@@ -14,7 +14,7 @@ pip install modal && modal token new        # one-time Modal auth
 
 Drop single-object images into `benchmarks/assets/` matching the `image` fields
 in `cases/default.json` (e.g. `chair.png`, `character.png`, `prop.png`) and a
-`smoke.png` for the smoke test. Clean, centered product/render shots of one
+`pot.png` for the smoke test. Clean, centered product/render shots of one
 object work best.
 
 ## Run

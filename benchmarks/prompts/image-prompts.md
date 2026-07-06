@@ -32,7 +32,7 @@ PBR-render look, crisp material detail, no text, no coins, no other objects. The
 CLAY logo image is attached — engrave it on the front iron plate of the chest so
 the brand mark is part of the prop.
 
-## smoke.png
+## pot.png
 A single handcrafted ceramic clay pot, smooth rounded form, centered on a
 seamless white studio backdrop. Front three-quarter view, full pot in frame with
 a soft contact shadow, soft even studio lighting, matte terracotta glaze, clean
