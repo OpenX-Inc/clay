@@ -15,8 +15,8 @@ jobs:
         uses: astral-sh/setup-uv@v5
       - name: Set up Python
         run: uv python install 3.12
-      - name: Install (dev extras)
-        run: uv sync --extra dev
+      - name: Install (dev + postprocess extras)
+        run: uv sync --extra dev --extra postprocess
       - name: Ruff
         run: uv run ruff check src tests
       - name: Pytest
