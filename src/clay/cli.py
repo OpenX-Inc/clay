@@ -121,6 +121,74 @@ def deploy(
 
 
 @app.command()
+def agent(
+    message: str = typer.Option("", "--message", "-m", help="One-shot message (else REPL)"),
+    model: str = typer.Option("", help="Model (default from config, e.g. kimi)"),
+    config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+) -> None:
+    """Chat with the Clay agent — kimi drives the tool registry."""
+    from clay.agent import Agent, NvidiaClient
+    from clay.config import load_config
+    from clay.tools.context import ToolContext
+
+    cfg = load_config(config_path)
+    client = NvidiaClient(
+        api_key=cfg.agent.api_key or None,
+        base_url=cfg.agent.base_url,
+        model=model or cfg.agent.model,
+    )
+    if not client.api_key:
+        console.print("[red]No API key.[/] Set CLAY_NVIDIA_API_KEY or [agent].api_key.")
+        raise typer.Exit(1)
+    ctx = ToolContext.from_config(cfg)
+    agent_ = Agent(client, ctx, max_iterations=cfg.agent.max_iterations)
+
+    def _turn(text: str) -> None:
+        result = agent_.run(text)
+        for call in result["tool_calls"]:
+            console.print(f"  [dim]· {call['tool']}({call['args']})[/]")
+        console.print(f"[bold cyan]clay[/] {result['reply']}")
+
+    if message:
+        _turn(message)
+        return
+    console.print("[bold green]Clay agent[/] — type a message, Ctrl-D to exit.")
+    history: list[dict] = []  # noqa: F841 — reserved for multi-turn history
+    while True:
+        try:
+            text = console.input("[bold]you[/] ")
+        except (EOFError, KeyboardInterrupt):
+            console.print("\n[dim]bye[/]")
+            return
+        if text.strip():
+            _turn(text)
+
+
+@app.command()
+def mcp(
+    host: str = typer.Option("127.0.0.1", help="Bind host"),
+    port: int = typer.Option(0, help="Bind port (default from config)"),
+    config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+) -> None:
+    """Serve the Clay tools over MCP (streamable HTTP at /mcp)."""
+    import os
+
+    import clay.tools.all  # noqa: F401 — register tools so the count is accurate
+    from clay.config import load_config
+    from clay.mcp_server import run
+    from clay.tools.registry import REGISTRY
+
+    cfg = load_config(config_path)
+    os.environ.setdefault("CLAY_CONFIG", config_path)
+    resolved_port = port or cfg.mcp.port
+    console.print(
+        f"[bold green]Clay MCP[/] — http://{host}:{resolved_port}/mcp "
+        f"({len(REGISTRY)} tools loaded)"
+    )
+    run(host=host, port=resolved_port)
+
+
+@app.command()
 def providers() -> None:
     """List the available 3D model providers."""
     from clay.providers import available_providers, get_provider
