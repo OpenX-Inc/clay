@@ -15,7 +15,8 @@ def test_defaults_when_no_file(tmp_path):
 def test_loads_toml(tmp_path):
     p = tmp_path / "config.toml"
     p.write_text(
-        "[providers]\nmodel = \"hunyuan3d\"\n\n[postprocess]\ntarget_tris = 30000\nformat = \"fbx\"\n"
+        '[providers]\nmodel = "hunyuan3d"\n\n'
+        '[postprocess]\ntarget_tris = 30000\nformat = "fbx"\n'
     )
     cfg = load_config(p)
     assert cfg.providers.model == "hunyuan3d"
