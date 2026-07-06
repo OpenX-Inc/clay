@@ -22,6 +22,8 @@ import os
 
 import modal
 
+from clay.gpu_backend.image import build_trellis_image
+
 # --- Parameterization (read at deploy/import time) ---------------------------
 APP_NAME = os.environ.get("CLAY_GPU_APP_NAME", "clay-gpu-backend")
 GPU_TYPE = os.environ.get("CLAY_GPU_TYPE", "A100-80GB")
@@ -33,25 +35,9 @@ app = modal.App(APP_NAME)
 # Weights volume, namespaced per instance so named deploys don't clobber each other.
 volume = modal.Volume.from_name(f"{APP_NAME}-weights", create_if_missing=True)
 
-image = (
-    modal.Image.debian_slim(python_version="3.12")
-    .apt_install("git", "libgl1", "libglib2.0-0")
-    .pip_install(
-        "torch>=2.6.0",
-        "transformers>=4.50.0",
-        "diffusers>=0.33.0",
-        "accelerate>=1.5.0",
-        "trimesh>=4.4",
-        "xatlas>=0.0.9",
-        "pillow",
-        "numpy",
-        "fastapi[standard]",
-    )
-    # TRELLIS-2 ships as a research repo, not a pip package.
-    .run_commands("pip install git+https://github.com/microsoft/TRELLIS.git")
-    # Ship Clay's own package (server + runtime) into the image.
-    .add_local_python_source("clay")
-)
+# The real from-source TRELLIS-2 image (custom CUDA extensions). Shared with the
+# benchmark harness so the deploy and benchmark environments are identical.
+image = build_trellis_image()
 
 
 @app.cls(
