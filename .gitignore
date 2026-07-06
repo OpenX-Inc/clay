@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+uv.lock
+# Clay outputs / assets
+storage/
+outputs/
+*.glb
+*.fbx
+*.obj
+*.ply
+# Env / secrets
+.env
+config/config.toml
+.DS_Store
