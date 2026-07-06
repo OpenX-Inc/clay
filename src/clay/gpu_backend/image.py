@@ -63,7 +63,9 @@ def build_trellis_image() -> modal.Image:
             "git clone --recurse-submodules https://github.com/microsoft/TRELLIS.git /trellis"
         )
         # Custom CUDA extensions (compiled with nvcc on the CPU builder).
-        # --no-build-isolation so the builds see the already-installed torch.
+        # --no-build-isolation so the builds see the already-installed torch;
+        # that means the build backend (setuptools/wheel) must be present too.
+        .run_commands("pip install -U pip setuptools wheel")
         .run_commands(
             "pip install --no-build-isolation git+https://github.com/NVlabs/nvdiffrast.git",
             "git clone --recurse-submodules https://github.com/JeffreyXiang/diffoctreerast.git "
