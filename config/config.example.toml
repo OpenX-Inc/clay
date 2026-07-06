@@ -1,0 +1,41 @@
+# OpenX Clay — example configuration. Copy to config/config.toml and edit.
+
+# Where 3D generation runs. The orchestrator calls this backend over one HTTP
+# contract (/generate/image-to-3d|text-to-3d, /texture, /remesh, /health).
+[gpu_backend]
+provider = "modal"          # modal | runpod | self-hosted
+url = ""                    # deployed backend base URL, e.g. https://you--clay-gpu.modal.run
+api_key = ""
+
+# 3D model provider (swappable). TRELLIS-2 is the MIT primary.
+[providers]
+model = "trellis2"          # trellis2 | hunyuan3d | hi3dgen
+
+# Game-ready post-processing defaults (CPU; needs the `postprocess` extra).
+[postprocess]
+target_tris = 60000         # decimate/remesh to this triangle budget
+unwrap_uvs = true           # re-unwrap UVs (xatlas) for clean texture space
+format = "glb"              # glb | obj | fbx (fbx needs a Blender/assimp path)
+pbr = true                  # keep/pack PBR maps (base color, normal, roughness…)
+
+# In-app agent (LLM that drives the tools). OpenAI-compatible.
+[agent]
+provider = "nvidia"
+base_url = "https://integrate.api.nvidia.com/v1"
+api_key = ""                # falls back to CLAY_NVIDIA_API_KEY
+model = "kimi"
+max_iterations = 12
+
+# MCP server — exposes the same tools to external agents (e.g. Forge).
+[mcp]
+enabled = true
+host = "127.0.0.1"
+port = 8770
+token = ""                  # bearer; falls back to CLAY_MCP_TOKEN
+
+# `clay deploy` defaults — deploy the GPU backend as a named instance.
+[deploy]
+provider = "modal"          # modal (automated) | aws | gcp (scaffolded)
+name = "clay-gpu-backend"
+gpu = "A100-80GB"
+scaledown_window = 300
