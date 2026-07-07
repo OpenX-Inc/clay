@@ -43,8 +43,16 @@ def test_unwrap_produces_uvs():
     assert len(m.visual.uv) == len(m.vertices)
 
 
-def test_fbx_export_is_honest(tmp_path):
+def test_fbx_export(tmp_path):
+    """FBX now exports via Blender when available; else fails visibly (BlenderError)."""
+    from clay import blender
+
     asset, _ = _raw_asset(tmp_path, subdiv=2)
-    pp = PostProcessor(PostprocessConfig(target_tris=100000, format="fbx"))
-    with pytest.raises(RuntimeError, match="FBX"):
-        pp.process(asset, out_path=str(tmp_path / "out.fbx"))
+    pp = PostProcessor(PostprocessConfig(target_tris=100000, format="fbx", unwrap_uvs=False))
+    out = tmp_path / "out.fbx"
+    if blender.available():
+        result = pp.process(asset, out_path=str(out))
+        assert Path(result.path).exists() and Path(result.path).suffix == ".fbx"
+    else:
+        with pytest.raises(blender.BlenderError):
+            pp.process(asset, out_path=str(out))
