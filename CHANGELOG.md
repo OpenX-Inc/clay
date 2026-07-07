@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.11.0](https://github.com/OpenX-Inc/clay/compare/v0.10.0...v0.11.0) (2026-07-07)
+
+
+### Features
+
+* **cli:** clay variations command ([08320fe](https://github.com/OpenX-Inc/clay/commit/08320fe34ec887070c1b111c466606851961636d))
+* **gpu-backend:** thread seed through the contract (request→payload→runtime) ([985999a](https://github.com/OpenX-Inc/clay/commit/985999ae447fddcbda7c32e2bc978041ffa31546))
+* **tools:** generate_variations tool (shape reuse, GPU-gated) ([2665aaf](https://github.com/OpenX-Inc/clay/commit/2665aaf1b497e14cd5706e8ef5ecab01674ab0ff))
+* **variations:** generate_variations — N seed-varied generations via the shape pipeline ([c9a3f85](https://github.com/OpenX-Inc/clay/commit/c9a3f8532b58b32acea3b2d9ae0911b3bef76260))
+
+
+### Bug Fixes
+
+* **test:** import generate_variations directly (ruff N812) ([52968ac](https://github.com/OpenX-Inc/clay/commit/52968ac2055ffa6e82679a53d35e1c88e0b64eda))
+
+
+### Documentation
+
+* asset tools + commands + provider categories in README/config; roadmap update ([c2f3f17](https://github.com/OpenX-Inc/clay/commit/c2f3f173c65bf3a677e562866946461b4e1cd18c))
+
 ## [0.10.0](https://github.com/OpenX-Inc/clay/compare/v0.9.0...v0.10.0) (2026-07-07)
 
 
