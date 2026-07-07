@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.10.0](https://github.com/OpenX-Inc/clay/compare/v0.9.0...v0.10.0) (2026-07-07)
+
+
+### Features
+
+* **cli:** clay texture command + --texture opt-in flag on generate ([7d62c41](https://github.com/OpenX-Inc/clay/commit/7d62c41276f6bfb11b3a2019f5ee4825d40bba09))
+* **gpu-backend:** real /texture route + runtime.generate_texture (honest gating) ([8107c1c](https://github.com/OpenX-Inc/clay/commit/8107c1c1c1bf1b046e2b36efbf23dc0bb75fc7eb))
+* **providers:** register texture providers (paint3d/syncmvd/texture) ([a577c39](https://github.com/OpenX-Inc/clay/commit/a577c3954c28bd09e490fbb21ea387c21f3de936))
+* **texture:** TextureAssetGenerator — UV-aware (re)texture + decals + manifest via /texture ([81918b8](https://github.com/OpenX-Inc/clay/commit/81918b8c558882332e78a2a2e34f9225b02f9ec5))
+* **tools:** texture_asset tool (re-skin any mesh, GPU-gated) ([88cd2bb](https://github.com/OpenX-Inc/clay/commit/88cd2bb30eb4544918cb818593698a19b810b7e1))
+
 ## [0.9.0](https://github.com/OpenX-Inc/clay/compare/v0.8.0...v0.9.0) (2026-07-07)
 
 
