@@ -8,8 +8,12 @@ url = ""                    # deployed backend base URL, e.g. https://you--clay-
 api_key = ""
 
 # 3D model provider (swappable). TRELLIS-2 is the MIT primary.
+# Model providers by category (swappable). Shape is the default `generate` model;
+# material/texture power generate_material / texture_asset (GPU-gated).
 [providers]
-model = "trellis2"          # trellis2 | hunyuan3d | hi3dgen
+model = "trellis2"              # shape:    trellis2 | hunyuan3d | hi3dgen
+material = "stablematerials"    # material: stablematerials | matfuse
+texture = "paint3d"            # texture:  paint3d | syncmvd | texture
 
 # Game-ready post-processing defaults (CPU; needs the `postprocess` extra).
 [postprocess]

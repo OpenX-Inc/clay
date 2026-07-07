@@ -59,6 +59,41 @@ in the orchestrator; the actual model inference runs on the GPU backend.
 > documented pipeline; other providers/modes fail *visibly* (a clear error),
 > never with fake output.
 
+## Game-ready asset tools
+
+Beyond `generate`, Clay ships general-purpose asset tools — each surfaced
+everywhere: a **registry tool** (so the **agent + MCP** get it for free), a
+**CLI subcommand**, and an **opt-in `generate` flag** that folds the stage into a
+run. The default `generate` (image/text → mesh) is unchanged; stages only run
+when asked.
+
+| Tool | Does | Engine |
+|------|------|--------|
+| `export_fbx` | mesh → FBX (meshes + UVs + skeleton) | Blender |
+| `make_collision` | convex/box/simplified/compound (VHACD) collider | trimesh (CPU) |
+| `make_lods` | LOD chain at descending ratios | trimesh (CPU) |
+| `retopo_asset` | clean quad topology + re-unwrap | Blender (Quadriflow) |
+| `bake_normals` | high→low tangent-space normal (+AO) bake | Blender (Cycles) |
+| `rig_asset` | auto-rig: humanoid/quadruped/**vehicle**/generic → skinned/parented FBX | Blender |
+| `generate_material` | tiling PBR material set + `material.json` | GPU (pluggable provider) |
+| `texture_asset` | UV-aware (re)texture / livery / skin (+ decals) | GPU (pluggable provider) |
+| `generate_variations` | N seed-varied generations | shape provider |
+
+```bash
+# opt-in stages fold into a generate run:
+clay generate --image van.png --rig --rig-type vehicle --with-lods --collision
+
+# or run any capability standalone:
+clay rig van.glb --type vehicle          # → body + per-wheel bones/sockets
+clay collision prop.glb --kind compound   # → VHACD collider
+clay material --kind facade --prompt "Nairobi CBD glass facade"
+```
+
+Blender-backed tools use a headless Blender (set `CLAY_BLENDER` / `[blender].path`)
+and **fail visibly** if it's absent; GPU model tools (material/texture) are
+**GPU-gated** — pluggable providers per category, honest errors until a backend
+is deployed. Pure-geometry steps (collision, LODs) are CPU-only.
+
 ## Deploy the GPU backend
 
 Generation needs a GPU backend — the open-source server in
@@ -117,11 +152,19 @@ clay mcp                       # http://127.0.0.1:8770/mcp  (Claude Code, Cursor
 
 | Command | What it does |
 |---------|--------------|
-| `clay generate` | image/text → game-ready asset (`--dry-run` validates, no GPU) |
+| `clay generate` | image/text → game-ready asset (opt-in: `--collision --with-lods --retopo --bake --rig --material --texture`) |
+| `clay export-fbx` | convert a mesh to FBX (Blender) |
+| `clay collision` | build a physics collider (convex/box/simplified/compound) |
+| `clay lods`     | build an LOD chain |
+| `clay retopo`   | quad retopology (Blender Quadriflow) |
+| `clay bake`     | high→low normal (+AO) bake (Blender) |
+| `clay rig`      | auto-rig per profile — humanoid/quadruped/vehicle/generic (Blender) |
+| `clay material` | tiling PBR material set (GPU-gated) |
+| `clay texture`  | UV-aware (re)texture a mesh (GPU-gated) |
+| `clay variations` | N seed-varied generations |
 | `clay deploy`   | deploy the GPU backend as a named instance |
-| `clay agent`    | chat with the tool-driving agent (REPL or `-m`) |
-| `clay mcp`      | serve the tools over MCP |
-| `clay providers`| list the available 3D model providers |
+| `clay agent` / `clay mcp` | agent REPL / MCP server over the tool registry |
+| `clay providers`| list the model providers |
 
 ## Quick start
 
@@ -157,10 +200,11 @@ clay generate --image nganya.png --format glb --target-tris 60000
 - [x] Pluggable model-provider registry (TRELLIS-2 / Hunyuan3D / Hi3DGen)
 - [x] GPU backend (FastAPI contract) + parameterized Modal deploy
 - [x] Agent + MCP over one tool registry
-- [~] TRELLIS-2 inference — wired image-to-3D, pending GPU validation
-- [ ] Hunyuan3D-2.1 + Hi3DGen runtimes
-- [ ] Texture generation endpoint
-- [ ] FBX export (Blender path)
+- [x] TRELLIS-2 inference — image-to-3D validated on GPU (real textured GLBs)
+- [x] FBX export + rig / retopo / normal-bake (headless Blender engine)
+- [x] Colliders (VHACD/convex) · LOD chains · seed variations
+- [x] Material + texture endpoints + pluggable provider categories (GPU-gated)
+- [ ] Hunyuan3D-2.1 + Hi3DGen runtimes; wire material/texture models
 - [ ] AWS + GCP first-class backend deploy
 - [~] OpenX Clay managed service — later
 
