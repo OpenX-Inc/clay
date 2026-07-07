@@ -22,23 +22,48 @@ class PostProcessor:
         self.config = config
 
     def process(self, asset: Generated3DAsset, out_path: str | None = None) -> Generated3DAsset:
-        """Post-process a raw asset into a game-ready one."""
+        """Post-process a raw asset into a game-ready one.
+
+        If the provider already produced a textured, budget-sized mesh (e.g.
+        TRELLIS bakes a PBR texture onto its simplified mesh), preserve it and
+        only enforce the export format — re-unwrapping/decimating would orphan
+        the baked texture. Otherwise apply the full decimate → UV-unwrap path.
+        """
         import trimesh
 
         mesh = trimesh.load(asset.path, force="mesh")
-        mesh = self.decimate(mesh, self.config.target_tris)
-        if self.config.unwrap_uvs:
-            mesh = self.unwrap(mesh)
+
+        if self._is_textured(mesh):
+            final = mesh
+        else:
+            final = self.decimate(mesh, self.config.target_tris)
+            if self.config.unwrap_uvs:
+                final = self.unwrap(final)
 
         fmt = self.config.format
         out = Path(out_path) if out_path else Path(
             tempfile.mkdtemp(prefix="clay_post_")) / f"asset.{fmt}"
-        self.export(mesh, out, fmt)
+        self.export(final, out, fmt)
 
         return Generated3DAsset(
-            path=str(out), format=fmt, triangles=int(len(mesh.faces)),
+            path=str(out), format=fmt, triangles=int(len(final.faces)),
             provider=asset.provider, textures=asset.textures, raw_path=asset.path,
         )
+
+    @staticmethod
+    def _is_textured(mesh) -> bool:
+        """True if the mesh already carries UVs + a real baked texture image.
+
+        Guards against trivial placeholder textures (e.g. a 2×2 default) so we
+        only skip our pipeline when there's a genuine texture to preserve.
+        """
+        visual = getattr(mesh, "visual", None)
+        uv = getattr(visual, "uv", None)
+        if uv is None or len(uv) == 0:
+            return False
+        material = getattr(visual, "material", None)
+        image = getattr(material, "baseColorTexture", None) if material else None
+        return image is not None and min(image.size) >= 16
 
     def decimate(self, mesh, target_tris: int):
         """Reduce triangle count to the budget (quadric decimation). No-op if under."""
