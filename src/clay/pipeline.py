@@ -24,5 +24,5 @@ class Pipeline:
             unwrap_uvs=request.unwrap_uvs,
             format=request.format,
             pbr=request.pbr,
-        ))
+        ), blender_path=self.config.blender.path)
         return pp.process(raw, out_path=out_path)

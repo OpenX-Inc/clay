@@ -18,8 +18,9 @@ from clay.schemas import Generated3DAsset
 class PostProcessor:
     """Remesh/decimate → UV unwrap → export a game-ready asset."""
 
-    def __init__(self, config: PostprocessConfig) -> None:
+    def __init__(self, config: PostprocessConfig, blender_path: str = "") -> None:
         self.config = config
+        self.blender_path = blender_path
 
     def process(self, asset: Generated3DAsset, out_path: str | None = None) -> Generated3DAsset:
         """Post-process a raw asset into a game-ready one.
@@ -83,13 +84,17 @@ class PostProcessor:
         )
 
     def export(self, mesh, out: Path, fmt: str) -> None:
-        """Export to a game format. GLB/OBJ are native; FBX needs a Blender path."""
+        """Export to a game format. GLB/OBJ/PLY are native (trimesh); FBX via Blender."""
         out.parent.mkdir(parents=True, exist_ok=True)
         if fmt == "fbx":
-            raise RuntimeError(
-                "FBX export requires a Blender/assimp path (on the roadmap). "
-                "Use format='glb' or 'obj' for now."
-            )
+            import tempfile
+
+            from clay.blender.ops import export_fbx
+
+            tmp = Path(tempfile.mkdtemp(prefix="clay_fbx_")) / "src.glb"
+            mesh.export(str(tmp))
+            export_fbx(tmp, out, blender=self.blender_path or None)
+            return
         if fmt not in ("glb", "obj", "ply"):
-            raise ValueError(f"unsupported format {fmt!r}; use glb | obj")
+            raise ValueError(f"unsupported format {fmt!r}; use glb | obj | ply | fbx")
         mesh.export(str(out))
