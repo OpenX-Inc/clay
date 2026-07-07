@@ -40,6 +40,20 @@ register_provider(ModelProvider(
     description="MatFuse — diffusion PBR material synthesis (alt).",
 ))
 
+# --- texture (UV-aware paint onto an existing mesh) --------------------------
+register_provider(ModelProvider(
+    name="paint3d", modes=("text", "image"), license="research", category="texture",
+    description="Paint3D — UV-aware texture painting onto a mesh (verify SOTA).",
+))
+register_provider(ModelProvider(
+    name="syncmvd", modes=("text", "image"), license="research", category="texture",
+    description="SyncMVD — synchronized multi-view diffusion texturing (alt).",
+))
+register_provider(ModelProvider(
+    name="texture", modes=("text",), license="research", category="texture",
+    description="TEXTure — text-guided texture synthesis (alt).",
+))
+
 __all__ = [
     "ModelProvider",
     "register_provider",
