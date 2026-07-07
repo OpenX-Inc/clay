@@ -69,3 +69,43 @@ def retopo_asset(ctx: ToolContext, args: dict) -> dict:
         return error("blender_unavailable", str(err))
     return ok(path=str(out), faces=res.get("faces"), quads=res.get("quads"),
               quad_ratio=res.get("quad_ratio"))
+
+
+@tool(
+    "bake_normals",
+    "Bake high-poly detail into a tangent-space normal map (+ optional AO) on a "
+    "low-poly mesh. If low is omitted, the high mesh is decimated. Blender-backed.",
+    {
+        "high_path": "string",
+        "low_path": "string?",
+        "resolution": {"type": "integer", "minimum": 64, "optional": True},
+        "ao": "boolean?",
+    },
+)
+def bake_normals(ctx: ToolContext, args: dict) -> dict:
+    from clay.blender import bake_normals as _bake
+
+    high = Path(args["high_path"])
+    if not high.exists():
+        return error("not_found", f"no mesh at {high}")
+    low_path = args.get("low_path")
+    if low_path and not Path(low_path).exists():
+        return error("not_found", f"no low mesh at {low_path}")
+    ao = bool(args.get("ao", False))
+    out_mesh = ctx.output_dir / f"{high.stem}_baked.glb"
+    normal = ctx.output_dir / f"{high.stem}_normal.png"
+    ao_map = ctx.output_dir / f"{high.stem}_ao.png" if ao else None
+    try:
+        res = _bake(
+            high, out_mesh, normal,
+            low_path=low_path,
+            resolution=int(args.get("resolution", 1024)),
+            ao=ao, ao_map=ao_map,
+            blender=ctx.config.blender.path or None,
+        )
+    except BlenderError as err:
+        return error("blender_unavailable", str(err))
+    return ok(
+        path=str(out_mesh), normal_map=str(normal), ao_map=res.get("ao_map"),
+        resolution=res.get("resolution"), low_faces=res.get("low_faces"),
+    )
