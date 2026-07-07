@@ -48,6 +48,8 @@ class Generator:
             payload["image_b64"] = request.image_b64 or self._encode_image(request.image_path)
         else:
             payload["prompt"] = request.prompt
+        if request.seed is not None:
+            payload["seed"] = request.seed
 
         result = self._post(endpoint, payload)
 

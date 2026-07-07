@@ -23,6 +23,7 @@ class GenerationRequest(BaseModel):
     format: str = "glb"                # glb | obj | fbx
     unwrap_uvs: bool = True
     pbr: bool = True
+    seed: int | None = None            # for reproducible / varied generation
 
 
 class Texture(BaseModel):

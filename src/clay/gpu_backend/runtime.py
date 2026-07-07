@@ -44,7 +44,9 @@ def _load_trellis():
     return pipe
 
 
-def _trellis_image_to_3d(image_b64: str, target_tris: int | None = None) -> tuple[bytes, int]:
+def _trellis_image_to_3d(
+    image_b64: str, target_tris: int | None = None, seed: int | None = None
+) -> tuple[bytes, int]:
     """Run TRELLIS-2 image-to-3D → (glb_bytes, triangle_count).
 
     Follows the documented microsoft/TRELLIS usage: ``pipeline.run(image)`` then
@@ -58,7 +60,9 @@ def _trellis_image_to_3d(image_b64: str, target_tris: int | None = None) -> tupl
 
     pipe = _load_trellis()
     image = Image.open(io.BytesIO(base64.b64decode(image_b64))).convert("RGB")
-    outputs = pipe.run(image, seed=int(os.environ.get("CLAY_TRELLIS_SEED", "1")))
+    if seed is None:
+        seed = int(os.environ.get("CLAY_TRELLIS_SEED", "1"))
+    outputs = pipe.run(image, seed=int(seed))
     mesh = outputs["mesh"][0]
 
     # Compute the simplify ratio to hit the tri budget (to_glb bakes texture onto
@@ -102,7 +106,9 @@ def generate(
         if mode == "image":
             if not image_b64:
                 raise RuntimeError("image_b64 is required for image-to-3D")
-            return _trellis_image_to_3d(image_b64, target_tris=opts.get("target_tris"))
+            return _trellis_image_to_3d(
+                image_b64, target_tris=opts.get("target_tris"), seed=opts.get("seed")
+            )
         raise RuntimeError(
             "TRELLIS-2 text-to-3D is not wired yet (image-to-3D is). "
             "Wire the TRELLIS text pipeline in clay/gpu_backend/runtime.py."
