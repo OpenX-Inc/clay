@@ -36,3 +36,26 @@ def make_collision(ctx: ToolContext, args: dict) -> dict:
         out_dir=ctx.output_dir,
     )
     return ok(**res)
+
+
+@tool(
+    "make_lods",
+    "Build an LOD chain (decimated copies at descending ratios) for a mesh. CPU-only.",
+    {
+        "input_path": "string",
+        "ratios": {"type": "array", "items": "number", "optional": True},
+    },
+)
+def make_lods(ctx: ToolContext, args: dict) -> dict:
+    from clay.lods import DEFAULT_RATIOS
+    from clay.lods import make_lods as _make
+
+    src = Path(args["input_path"])
+    if not src.exists():
+        return error("not_found", f"no mesh at {src}")
+    ratios = args.get("ratios") or list(DEFAULT_RATIOS)
+    try:
+        res = _make(src, ratios=ratios, out_dir=ctx.output_dir)
+    except ValueError as err:
+        return error("invalid", str(err))
+    return ok(**res)
