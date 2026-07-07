@@ -17,9 +17,10 @@ import os
 
 import modal
 
-GPU = os.environ.get("CLAY_BENCH_GPU", "A100-80GB")
-# Target GPU compute capability for the CUDA extension builds. A100 = 8.0.
-CUDA_ARCH = os.environ.get("CLAY_CUDA_ARCH", "8.0")
+GPU = os.environ.get("CLAY_BENCH_GPU", "A10G")
+# Target GPU compute capabilities for the CUDA extension builds — multi-arch so
+# one image runs on A10G (8.6), A100 (8.0) and L40S (8.9) without a rebuild.
+CUDA_ARCH = os.environ.get("CLAY_CUDA_ARCH", "8.0;8.6;8.9")
 TORCH_INDEX = "https://download.pytorch.org/whl/cu121"
 KAOLIN_LINKS = "https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.4.0_cu121.html"
 # utils3d pinned to the commit TRELLIS requires.
