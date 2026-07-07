@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.0](https://github.com/OpenX-Inc/clay/compare/v0.3.0...v0.4.0) (2026-07-07)
+
+
+### Features
+
+* **cli:** clay collision command + --collision opt-in flag on generate ([476d5f6](https://github.com/OpenX-Inc/clay/commit/476d5f69ddbc37f69f84bd57d6ba3a29c68fe8f1))
+* **collision:** make_collision — convex/box/simplified/compound (coacd + honest fallback) ([8f15584](https://github.com/OpenX-Inc/clay/commit/8f15584f2bdbaa83f4e3b16fba52adfeb7be7ff8))
+* **tools:** make_collision tool (CPU geometry) ([95fc279](https://github.com/OpenX-Inc/clay/commit/95fc27978a106019612d909cb99eb1b34f3b5cb2))
+
 ## [0.3.0](https://github.com/OpenX-Inc/clay/compare/v0.2.0...v0.3.0) (2026-07-07)
 
 
