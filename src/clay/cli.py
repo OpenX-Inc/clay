@@ -220,6 +220,34 @@ def preview(
     )
 
 
+@app.command(name="export-fbx")
+def export_fbx_cmd(
+    mesh: str = typer.Argument(help="Input mesh (glb/obj/ply/stl/fbx)"),
+    output: str = typer.Option("", help="Output .fbx path (default: alongside output_dir)"),
+    config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+) -> None:
+    """Convert a mesh to FBX via headless Blender (preserves meshes + UVs)."""
+    from pathlib import Path
+
+    from clay.blender import BlenderError, export_fbx
+    from clay.config import load_config
+
+    cfg = load_config(config_path)
+    src = Path(mesh)
+    if not src.exists():
+        console.print(f"[red]No mesh at {src}[/]")
+        raise typer.Exit(1)
+    out = output or str(Path(cfg.output_dir) / f"{src.stem}.fbx")
+    try:
+        res = export_fbx(src, out, blender=cfg.blender.path or None)
+    except BlenderError as err:
+        console.print(f"[red]{err}[/]")
+        raise typer.Exit(1) from None
+    console.print(
+        f"[bold green]✓[/] {out} — {res.get('faces')} faces, {res.get('mesh_count')} mesh(es)"
+    )
+
+
 @app.command()
 def providers() -> None:
     """List the available 3D model providers."""
