@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0](https://github.com/OpenX-Inc/clay/compare/v0.8.0...v0.9.0) (2026-07-07)
+
+
+### Features
+
+* **cli:** clay material command + --material opt-in flag on generate ([505e4c2](https://github.com/OpenX-Inc/clay/commit/505e4c22099247e86bfde55c93df43d8aba19c9d))
+* **gpu-backend:** /material route + runtime.generate_material (honest GPU gating) ([0f45970](https://github.com/OpenX-Inc/clay/commit/0f459706d2f3054b492cb8ffbc4067c56e31d06f))
+* **material:** MaterialGenerator — PBR set + material.json via /material backend route ([b8b9aba](https://github.com/OpenX-Inc/clay/commit/b8b9aba3e22ce2c02cd5d75122ed0d2f3b6f88e1))
+* **providers:** provider categories (shape/material/texture) + material providers ([31ec59f](https://github.com/OpenX-Inc/clay/commit/31ec59f8cfb669cdf4da3517ada7e02137bd7131))
+* **tools:** generate_material tool (5 PBR maps + manifest, GPU-gated) ([b8cceba](https://github.com/OpenX-Inc/clay/commit/b8cceba3b039c8421087c1890ac90826f46726fe))
+
 ## [0.8.0](https://github.com/OpenX-Inc/clay/compare/v0.7.0...v0.8.0) (2026-07-07)
 
 
