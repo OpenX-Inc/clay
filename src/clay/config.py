@@ -60,6 +60,17 @@ class DeployConfig(BaseModel):
     scaledown_window: int = 300
 
 
+class BlenderConfig(BaseModel):
+    """Headless Blender — Clay's mesh-processing engine (FBX export, rig, retopo, bake).
+
+    ``path`` points at a Blender binary; if empty, Clay looks at ``CLAY_BLENDER`` /
+    ``BLENDER_PATH`` env vars, then ``blender`` on PATH. Blender-backed tools fail
+    visibly when none is found.
+    """
+
+    path: str = ""
+
+
 class Config(BaseModel):
     gpu_backend: GPUBackendConfig = GPUBackendConfig()
     providers: ProvidersConfig = ProvidersConfig()
@@ -67,6 +78,7 @@ class Config(BaseModel):
     agent: AgentConfig = AgentConfig()
     mcp: MCPConfig = MCPConfig()
     deploy: DeployConfig = DeployConfig()
+    blender: BlenderConfig = BlenderConfig()
     output_dir: str = "storage/outputs"
 
 
