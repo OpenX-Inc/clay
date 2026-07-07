@@ -51,3 +51,42 @@ def generate_material(ctx: ToolContext, args: dict) -> dict:
     except httpx.HTTPStatusError as err:
         return error("gpu_gated", f"backend {err.response.status_code}: {err.response.text[:200]}")
     return ok(**res)
+
+
+@tool(
+    "texture_asset",
+    "Paint / re-skin an existing mesh from a prompt/image onto its own UVs "
+    "(character skins, prop variants, vehicle liveries). Optional decal PNGs. "
+    "GPU-gated (needs a deployed texture backend).",
+    {
+        "input_path": "string",
+        "prompt": "string?",
+        "image_path": "string?",
+        "resolution": {"type": "integer", "minimum": 128, "optional": True},
+        "keep_uvs": "boolean?",
+        "emit_decals": "boolean?",
+    },
+)
+def texture_asset(ctx: ToolContext, args: dict) -> dict:
+    from clay.texture import TextureAssetGenerator
+
+    src = Path(args["input_path"])
+    if not src.exists():
+        return error("not_found", f"no mesh at {src}")
+    if not args.get("prompt") and not args.get("image_path"):
+        return error("invalid", "provide a prompt or an image_path")
+    try:
+        res = TextureAssetGenerator(ctx.config).texture(
+            src,
+            prompt=args.get("prompt"),
+            image_path=args.get("image_path"),
+            resolution=int(args.get("resolution", 1024)),
+            keep_uvs=bool(args.get("keep_uvs", True)),
+            emit_decals=bool(args.get("emit_decals", False)),
+            out_dir=ctx.output_dir,
+        )
+    except RuntimeError as err:
+        return error("no_backend", str(err))
+    except httpx.HTTPStatusError as err:
+        return error("gpu_gated", f"backend {err.response.status_code}: {err.response.text[:200]}")
+    return ok(**res)
