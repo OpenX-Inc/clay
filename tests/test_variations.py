@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import clay.tools.all  # noqa: F401 — register tools
-from clay import variations as V
 from clay.config import Config
 from clay.schemas import Generated3DAsset
 from clay.tools.context import ToolContext, dispatch
 from clay.tools.registry import REGISTRY
+from clay.variations import generate_variations
 
 
 def test_registry_has_generate_variations():
@@ -25,7 +25,7 @@ def test_variations_loop_uses_incrementing_seeds(monkeypatch, tmp_path):
         return Generated3DAsset(path=out_path, format="glb", triangles=123)
 
     monkeypatch.setattr("clay.variations.Pipeline.run", fake_run)
-    res = V.generate_variations(
+    res = generate_variations(
         Config(), mode="text", prompt="a chair", count=3, seed=10, out_dir=tmp_path
     )
     assert res["count"] == 3
