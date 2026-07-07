@@ -111,3 +111,26 @@ def generate(
         f"model runtime for provider {provider!r} is not wired yet — "
         "contribute it in clay/gpu_backend/runtime.py (needs the gpu extra + weights)."
     )
+
+
+def generate_material(
+    provider: str,
+    *,
+    kind: str = "generic",
+    prompt: str | None = None,
+    image_b64: str | None = None,
+    resolution: int = 1024,
+    tiling: bool = True,
+    **opts,
+) -> dict:
+    """Synthesise a tiling PBR material set. GPU-gated: fails visibly until wired.
+
+    Wire a current-SOTA open, self-hostable, commercially-usable tiling-PBR model
+    here (e.g. StableMaterials-style SD + PBR decompose) and return base64 maps:
+    ``{base_color_b64, normal_b64, roughness_b64, metallic_b64, ao_b64}``.
+    """
+    raise RuntimeError(
+        f"material runtime for provider {provider!r} is not wired yet — contribute it "
+        "in clay/gpu_backend/runtime.py (needs the gpu extra + a tiling-PBR material "
+        "model + weights)."
+    )

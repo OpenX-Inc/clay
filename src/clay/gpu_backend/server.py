@@ -103,6 +103,30 @@ def texture(body: dict) -> dict:
     )
 
 
+@app.post("/material")
+def material(body: dict) -> dict:
+    """Tiling PBR material set. GPU-gated: 503 with an honest message until wired."""
+    prompt = body.get("prompt")
+    image_b64 = body.get("image_b64")
+    if not prompt and not image_b64:
+        raise HTTPException(400, "prompt or image_b64 is required")
+    from clay.gpu_backend import runtime
+
+    try:
+        return runtime.generate_material(
+            body.get("provider", "stablematerials"),
+            kind=body.get("kind", "generic"),
+            prompt=prompt,
+            image_b64=image_b64,
+            resolution=int(body.get("resolution", 1024)),
+            tiling=bool(body.get("tiling", True)),
+        )
+    except RuntimeError as err:
+        raise HTTPException(503, str(err)) from err
+    except ImportError as err:
+        raise HTTPException(503, f"material deps missing (gpu extra): {err}") from err
+
+
 def _run(provider: str, mode: str, *, image_b64=None, prompt=None, fmt="glb",
          target_tris=None) -> dict:
     from clay.gpu_backend import runtime
