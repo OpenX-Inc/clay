@@ -24,6 +24,7 @@ def generate(
     collision: bool = typer.Option(False, "--collision", help="Also emit a convex collision proxy"),
     with_lods: bool = typer.Option(False, "--with-lods", help="Also emit an LOD chain"),
     retopo: bool = typer.Option(False, "--retopo", help="Also emit a retopologized (quad) copy"),
+    bake: bool = typer.Option(False, "--bake", help="Also bake a normal map (decimated low-poly)"),
     dry_run: bool = typer.Option(False, help="Validate + print the plan; no backend call"),
 ) -> None:
     """Generate a game-ready 3D asset from an image or a prompt."""
@@ -100,6 +101,23 @@ def generate(
             )
         except BlenderError as err:
             console.print(f"  [yellow]retopo skipped[/] — {err}")
+    if bake:
+        from pathlib import Path
+
+        from clay.blender import BlenderError
+        from clay.blender import bake_normals as _bake
+
+        stem = Path(asset.path).stem
+        out_mesh = Path(cfg.output_dir) / f"{stem}_baked.glb"
+        normal = Path(cfg.output_dir) / f"{stem}_normal.png"
+        try:
+            res = _bake(asset.path, out_mesh, normal, blender=cfg.blender.path or None)
+            console.print(
+                f"  [green]+ normal bake[/] {res['normal_map']} "
+                f"({res['resolution']}², low {res['low_faces']} faces)"
+            )
+        except BlenderError as err:
+            console.print(f"  [yellow]bake skipped[/] — {err}")
 
 
 @app.command()
@@ -283,6 +301,46 @@ def export_fbx_cmd(
         raise typer.Exit(1) from None
     console.print(
         f"[bold green]✓[/] {out} — {res.get('faces')} faces, {res.get('mesh_count')} mesh(es)"
+    )
+
+
+@app.command()
+def bake(
+    high: str = typer.Argument(help="High-poly mesh"),
+    low: str = typer.Option("", help="Low-poly mesh (decimated from high if omitted)"),
+    resolution: int = typer.Option(1024, help="Normal map resolution"),
+    ao: bool = typer.Option(False, "--ao", help="Also bake an ambient-occlusion map"),
+    output: str = typer.Option("", help="Output low mesh path (default: output_dir)"),
+    config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+) -> None:
+    """Bake high→low tangent-space normal map (+ optional AO) via Blender."""
+    from pathlib import Path
+
+    from clay.blender import BlenderError
+    from clay.blender import bake_normals as _bake
+    from clay.config import load_config
+
+    cfg = load_config(config_path)
+    src = Path(high)
+    if not src.exists():
+        console.print(f"[red]No mesh at {src}[/]")
+        raise typer.Exit(1)
+    out_dir = Path(cfg.output_dir)
+    out_mesh = output or str(out_dir / f"{src.stem}_baked.glb")
+    normal = str(out_dir / f"{src.stem}_normal.png")
+    ao_map = str(out_dir / f"{src.stem}_ao.png") if ao else None
+    try:
+        res = _bake(
+            src, out_mesh, normal, low_path=low or None,
+            resolution=resolution, ao=ao, ao_map=ao_map,
+            blender=cfg.blender.path or None,
+        )
+    except BlenderError as err:
+        console.print(f"[red]{err}[/]")
+        raise typer.Exit(1) from None
+    console.print(
+        f"[bold green]✓[/] {res['normal_map']} ({res['resolution']}²) · "
+        f"low {res['low_faces']} faces → {out_mesh}"
     )
 
 
