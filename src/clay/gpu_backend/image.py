@@ -79,5 +79,8 @@ def build_trellis_image() -> modal.Image:
             "&& CC=gcc CXX=g++ pip install --no-build-isolation "
             "/tmp/mip-splatting/submodules/diff-gaussian-rasterization/",
         )
+        # Clay's post-processing needs fast-simplification for decimation. Added
+        # as a late layer so the compiled CUDA extensions above stay cached.
+        .pip_install("fast-simplification>=0.1.7", "pygltflib>=1.16.0")
         .add_local_python_source("clay")
     )
