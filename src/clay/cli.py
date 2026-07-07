@@ -22,6 +22,7 @@ def generate(
     output: str = typer.Option("", help="Output path (auto-generated if empty)"),
     config_path: str = typer.Option("config/config.toml", help="Path to config file"),
     collision: bool = typer.Option(False, "--collision", help="Also emit a convex collision proxy"),
+    with_lods: bool = typer.Option(False, "--with-lods", help="Also emit an LOD chain"),
     dry_run: bool = typer.Option(False, help="Validate + print the plan; no backend call"),
 ) -> None:
     """Generate a game-ready 3D asset from an image or a prompt."""
@@ -73,6 +74,13 @@ def generate(
         console.print(
             f"  [green]+ collider[/] {res['path']} — {res['hulls']} hull, {res['faces']} faces"
         )
+    if with_lods:
+        from pathlib import Path
+
+        from clay.lods import make_lods
+
+        res = make_lods(asset.path, out_dir=Path(cfg.output_dir))
+        console.print(f"  [green]+ {res['count']} LODs[/] (base {res['base_faces']} faces)")
 
 
 @app.command()
@@ -257,6 +265,39 @@ def export_fbx_cmd(
     console.print(
         f"[bold green]✓[/] {out} — {res.get('faces')} faces, {res.get('mesh_count')} mesh(es)"
     )
+
+
+@app.command()
+def lods(
+    mesh: str = typer.Argument(help="Input mesh"),
+    ratios: str = typer.Option("1.0,0.5,0.25,0.1", help="Comma-separated LOD ratios"),
+    output_dir: str = typer.Option("", help="Output directory (default: output_dir)"),
+    config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+) -> None:
+    """Build an LOD chain (decimated copies) for a mesh."""
+    from pathlib import Path
+
+    from clay.config import load_config
+    from clay.lods import make_lods
+
+    cfg = load_config(config_path)
+    src = Path(mesh)
+    if not src.exists():
+        console.print(f"[red]No mesh at {src}[/]")
+        raise typer.Exit(1)
+    try:
+        parsed = [float(r) for r in ratios.split(",") if r.strip()]
+    except ValueError:
+        console.print("[red]--ratios must be comma-separated numbers, e.g. 1.0,0.5,0.25[/]")
+        raise typer.Exit(1) from None
+    try:
+        res = make_lods(src, ratios=parsed, out_dir=output_dir or cfg.output_dir)
+    except ValueError as err:
+        console.print(f"[red]{err}[/]")
+        raise typer.Exit(1) from None
+    console.print(f"[bold green]✓[/] {res['count']} LODs (base {res['base_faces']} faces):")
+    for lod in res["lods"]:
+        console.print(f"  LOD{lod['level']} · {lod['faces']} faces · {lod['path']}")
 
 
 @app.command()
