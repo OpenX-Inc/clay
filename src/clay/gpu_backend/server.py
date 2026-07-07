@@ -50,6 +50,7 @@ def image_to_3d(body: dict) -> dict:
         "image",
         image_b64=image_b64,
         fmt=body.get("format", "glb"),
+        target_tris=body.get("target_tris"),
     )
 
 
@@ -63,6 +64,7 @@ def text_to_3d(body: dict) -> dict:
         "text",
         prompt=prompt,
         fmt=body.get("format", "glb"),
+        target_tris=body.get("target_tris"),
     )
 
 
@@ -101,12 +103,14 @@ def texture(body: dict) -> dict:
     )
 
 
-def _run(provider: str, mode: str, *, image_b64=None, prompt=None, fmt="glb") -> dict:
+def _run(provider: str, mode: str, *, image_b64=None, prompt=None, fmt="glb",
+         target_tris=None) -> dict:
     from clay.gpu_backend import runtime
 
     try:
         mesh_bytes, triangles = runtime.generate(
-            provider, mode, image_b64=image_b64, prompt=prompt, fmt=fmt
+            provider, mode, image_b64=image_b64, prompt=prompt, fmt=fmt,
+            target_tris=target_tris,
         )
     except RuntimeError as err:
         raise HTTPException(503, str(err)) from err

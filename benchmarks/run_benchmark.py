@@ -59,7 +59,8 @@ def bench_case(case: dict, image_bytes: bytes | None = None) -> dict:
     try:
         image_b64 = base64.b64encode(image_bytes).decode() if image_bytes else None
         raw_bytes, raw_tris = runtime.generate(
-            provider, mode, image_b64=image_b64, prompt=case.get("prompt")
+            provider, mode, image_b64=image_b64, prompt=case.get("prompt"),
+            target_tris=target_tris,
         )
         t_gen = time.time()
 
