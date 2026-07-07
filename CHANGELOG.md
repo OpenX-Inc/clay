@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.0](https://github.com/OpenX-Inc/clay/compare/v0.4.0...v0.5.0) (2026-07-07)
+
+
+### Features
+
+* **cli:** clay lods command + --with-lods opt-in flag on generate ([54f19eb](https://github.com/OpenX-Inc/clay/commit/54f19eb44262ca085077f59c982853e490d506e1))
+* **lods:** make_lods — quadric-decimation LOD chain at descending ratios ([3c68eb9](https://github.com/OpenX-Inc/clay/commit/3c68eb92163f2cee2b18f3657e95fa7fbf698543))
+* **tools:** make_lods tool ([69f1332](https://github.com/OpenX-Inc/clay/commit/69f1332ec3e6d645175dcb61b33d9573a4e8572f))
+
 ## [0.4.0](https://github.com/OpenX-Inc/clay/compare/v0.3.0...v0.4.0) (2026-07-07)
 
 
