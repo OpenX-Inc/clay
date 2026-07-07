@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.0](https://github.com/OpenX-Inc/clay/compare/v0.5.0...v0.6.0) (2026-07-07)
+
+
+### Features
+
+* **blender:** shared script helpers + Quadriflow retopo (engine + ops) ([8c57b5b](https://github.com/OpenX-Inc/clay/commit/8c57b5b355f8ff40d65f1f1975118bb15e24e384))
+* **cli:** clay retopo command + --retopo opt-in flag on generate ([d9ba1a9](https://github.com/OpenX-Inc/clay/commit/d9ba1a92d960d5980498a8c16c8ab33c35e38753))
+* **tools:** retopo_asset tool (Blender Quadriflow, quad-dominant + re-unwrap) ([9a6dcae](https://github.com/OpenX-Inc/clay/commit/9a6dcaef48d019f65cebc5ec296b16228009c233))
+
 ## [0.5.0](https://github.com/OpenX-Inc/clay/compare/v0.4.0...v0.5.0) (2026-07-07)
 
 
