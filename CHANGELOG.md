@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.2.0](https://github.com/OpenX-Inc/clay/compare/v0.1.0...v0.2.0) (2026-07-07)
+
+
+### Features
+
+* **bench:** default case matrix (tri-budget sweep + object variety) ([6755c28](https://github.com/OpenX-Inc/clay/commit/6755c2806e54c554d848924bfed296e19f3feada))
+* **bench:** Modal harness — real runtime + postprocess, per-case metrics/cost, visible failures ([b91daec](https://github.com/OpenX-Inc/clay/commit/b91daece86485027ffe65944c0ba2f1c48bfd258))
+* **gpu-backend:** multi-arch ext build (8.0;8.6;8.9) — runs on A10G/A100/L40S; default GPU A10G ([584860a](https://github.com/OpenX-Inc/clay/commit/584860ac74c53a729c3b217cadb7c0b1b7cf9d8f))
+* **gpu-backend:** real TRELLIS-2 image — from-source CUDA-extension build (nvdiffrast/diffoctreerast/diff-gaussian-rast/vox2seq, xformers/spconv/kaolin) ([19b5abb](https://github.com/OpenX-Inc/clay/commit/19b5abb9fcc9be145221f2b83d5b73af353fca4e))
+* **gpu-backend:** thread target_tris through the contract to the runtime ([9389939](https://github.com/OpenX-Inc/clay/commit/93899392f39bb190f3966ef76684e4b2319a8cb5))
+* **preview:** clay preview — self-contained interactive model-viewer HTML ([2f38238](https://github.com/OpenX-Inc/clay/commit/2f38238f6faf992702df75dc118fd782f25fdf6e))
+
+
+### Bug Fixes
+
+* **bench:** use the real shared TRELLIS image (pip install git+ was invalid) ([95447d4](https://github.com/OpenX-Inc/clay/commit/95447d4459977530f971b0f27c85b9f43dbc2b4e))
+* **gpu-backend:** --no-build-isolation for CUDA extension builds (nvdiffrast et al.) ([6fb66db](https://github.com/OpenX-Inc/clay/commit/6fb66dbf11e0ee17bd1817b736636f9a3bd5dfa8))
+* **gpu-backend:** add fast-simplification/pygltflib for postprocess (late layer, keeps ext cache) ([e122e0f](https://github.com/OpenX-Inc/clay/commit/e122e0fcc3697b4aad99ca67dad54c15e490ec7e))
+* **gpu-backend:** drive TRELLIS to_glb simplify from tri budget (texture-aware decimation) ([b27149a](https://github.com/OpenX-Inc/clay/commit/b27149a6cb9b114bd6aebb9a678e7229d25622ab))
+* **gpu-backend:** drop vox2seq (not part of TRELLIS setup); ext build complete ([4e5adbd](https://github.com/OpenX-Inc/clay/commit/4e5adbdb856773f41bfa9d4c900d3b2cd836f3b3))
+* **gpu-backend:** force gcc/g++ for CUDA ext builds (inline, keeps torch layer cached) ([1226f78](https://github.com/OpenX-Inc/clay/commit/1226f784090463b74d89b9022c8ef82d47172df2))
+* **gpu-backend:** install setuptools/wheel before --no-build-isolation ext builds ([685c8ca](https://github.com/OpenX-Inc/clay/commit/685c8ca43bbef11ff59618b5287ad3ba8a4a873c))
+* **gpu-backend:** set ATTN_BACKEND/SPCONV_ALGO before import, run TRELLIS in-place, robust face count ([c4742a3](https://github.com/OpenX-Inc/clay/commit/c4742a310dc7ea3d8c878b837533f5579117b19e))
+* **postprocess:** preserve provider-baked textures — skip destructive re-unwrap/decimate when textured ([8e238aa](https://github.com/OpenX-Inc/clay/commit/8e238aa1a6d5be365e7609a50b0b689984ff43bb))
+
+
+### Documentation
+
+* **bench:** first real TRELLIS-2 results on A10G (5/5 textured, ~1.5-11c/asset) ([6d43b40](https://github.com/OpenX-Inc/clay/commit/6d43b40e4054e035aa3d01054f8af2e80495c4ce))
+* **bench:** how to run the Clay benchmarks ([5907e46](https://github.com/OpenX-Inc/clay/commit/5907e46d1d850ae0f736450d12959bba3c0592f5))
+* **bench:** input image prompts (single-object, Clay-branded, 3D-friendly) ([d0c39ad](https://github.com/OpenX-Inc/clay/commit/d0c39adf8d95afa5eebc027c8e8c799e4325573e))
+
 ## 0.1.0 (2026-07-06)
 
 
