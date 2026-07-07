@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0](https://github.com/OpenX-Inc/clay/compare/v0.6.0...v0.7.0) (2026-07-07)
+
+
+### Features
+
+* **blender:** high→low tangent-space normal (+AO) bake (script + ops) ([085e84b](https://github.com/OpenX-Inc/clay/commit/085e84b0c990f3194dfbc9ad1dbd337115f120d5))
+* **cli:** clay bake command + --bake opt-in flag on generate ([ce3c63d](https://github.com/OpenX-Inc/clay/commit/ce3c63d58a86a363fde3e407f4e572d5545df5b7))
+* **tools:** bake_normals tool (Blender, decimates low if omitted) ([01b9b16](https://github.com/OpenX-Inc/clay/commit/01b9b16532f387f0612cc03d4650195efc9ab181))
+
 ## [0.6.0](https://github.com/OpenX-Inc/clay/compare/v0.5.0...v0.6.0) (2026-07-07)
 
 
