@@ -64,3 +64,25 @@ def bake_normals(
     if ao and ao_map:
         data["ao_map"] = str(ao_map)
     return run_script("bake_normals.py", data, blender=blender, timeout=1800)
+
+
+def rig_asset(
+    input_path: str | Path,
+    output_path: str | Path,
+    *,
+    rig_type: str = "generic",
+    options: dict | None = None,
+    blender: str | None = None,
+) -> dict:
+    """Heuristic per-profile auto-rig → skinned/parented FBX. Returns script result."""
+    return run_script(
+        "rig.py",
+        {
+            "input": str(input_path),
+            "output": str(output_path),
+            "rig_type": rig_type,
+            "options": options or {},
+        },
+        blender=blender,
+        timeout=1800,
+    )
