@@ -16,3 +16,25 @@ def export_fbx(
         {"input": str(input_path), "output": str(output_path)},
         blender=blender,
     )
+
+
+def retopo(
+    input_path: str | Path,
+    output_path: str | Path,
+    *,
+    target_faces: int = 5000,
+    quads: bool = True,
+    blender: str | None = None,
+) -> dict:
+    """Retopologize a mesh (Quadriflow) to clean quad topology + re-unwrap UVs."""
+    return run_script(
+        "retopo.py",
+        {
+            "input": str(input_path),
+            "output": str(output_path),
+            "target_faces": int(target_faces),
+            "quads": bool(quads),
+        },
+        blender=blender,
+        timeout=1800,
+    )

@@ -9,7 +9,7 @@ from clay.blender.engine import (
     resolve_blender,
     run_script,
 )
-from clay.blender.ops import export_fbx
+from clay.blender.ops import export_fbx, retopo
 
 __all__ = [
     "BlenderError",
@@ -18,4 +18,5 @@ __all__ = [
     "require_blender",
     "run_script",
     "export_fbx",
+    "retopo",
 ]
