@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0](https://github.com/OpenX-Inc/clay/compare/v0.2.0...v0.3.0) (2026-07-07)
+
+
+### Features
+
+* **blender:** FBX export script + ops wrapper ([eb29239](https://github.com/OpenX-Inc/clay/commit/eb2923918b4dde2747251dd727c20f2d79ac7824))
+* **blender:** headless Blender engine — resolve binary, run scripts, honest gating ([297934e](https://github.com/OpenX-Inc/clay/commit/297934e6e87b893204dfa445a73c4153548ba38e))
+* **cli:** clay export-fbx command ([a3848f9](https://github.com/OpenX-Inc/clay/commit/a3848f997ceecf68c93550f053a15625785d4af8))
+* **config:** [blender] section — headless Blender mesh-processing engine path ([39d81ee](https://github.com/OpenX-Inc/clay/commit/39d81eeb07dd7ce7b5e564ffe6e21a043de6878c))
+* **postprocess:** real FBX export via Blender (R1) — replaces honest stub ([51fedfe](https://github.com/OpenX-Inc/clay/commit/51fedfe47c305309eef980fd4b11629229653f6c))
+* **tools:** export_fbx tool (Blender-backed, fails visibly) ([04da4ae](https://github.com/OpenX-Inc/clay/commit/04da4ae2e3184db1d083f46de86ad9c2a0030619))
+
+
+### Documentation
+
+* **config:** document [blender] path in example config ([c54d99a](https://github.com/OpenX-Inc/clay/commit/c54d99a25236561e6fa4fc3076b7fc7246c1bcee))
+
 ## [0.2.0](https://github.com/OpenX-Inc/clay/compare/v0.1.0...v0.2.0) (2026-07-07)
 
 
