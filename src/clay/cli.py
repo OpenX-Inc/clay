@@ -27,6 +27,7 @@ def generate(
     bake: bool = typer.Option(False, "--bake", help="Also bake a normal map (decimated low-poly)"),
     rig: bool = typer.Option(False, "--rig", help="Also auto-rig the asset (FBX)"),
     rig_type: str = typer.Option("generic", "--rig-type", help="humanoid|quadruped|vehicle|generic"),  # noqa: E501
+    material: bool = typer.Option(False, "--material", help="Also generate a PBR material set (from the prompt)"),  # noqa: E501
     dry_run: bool = typer.Option(False, help="Validate + print the plan; no backend call"),
 ) -> None:
     """Generate a game-ready 3D asset from an image or a prompt."""
@@ -135,6 +136,19 @@ def generate(
             )
         except BlenderError as err:
             console.print(f"  [yellow]rig skipped[/] — {err}")
+    if material and (prompt or image):
+        from pathlib import Path
+
+        from clay.material import MaterialGenerator
+
+        try:
+            res = MaterialGenerator(cfg).generate(
+                kind="generic", prompt=prompt or None, image_path=image or None,
+                out_dir=Path(cfg.output_dir), stem=f"{Path(asset.path).stem}_material",
+            )
+            console.print(f"  [green]+ material[/] {res['manifest']} ({len(res['maps'])} maps)")
+        except Exception as err:  # noqa: BLE001 — GPU-gated; report, don't fail the mesh
+            console.print(f"  [yellow]material skipped[/] — {err}")
 
 
 @app.command()
@@ -319,6 +333,35 @@ def export_fbx_cmd(
     console.print(
         f"[bold green]✓[/] {out} — {res.get('faces')} faces, {res.get('mesh_count')} mesh(es)"
     )
+
+
+@app.command()
+def material(
+    kind: str = typer.Option("generic", help="facade|road|ground|concrete|glass|generic"),
+    prompt: str = typer.Option("", help="Material prompt, e.g. 'Nairobi CBD glass facade'"),
+    image: str = typer.Option("", help="Optional reference image"),
+    resolution: int = typer.Option(1024, help="Map resolution"),
+    output_dir: str = typer.Option("", help="Output directory (default: output_dir)"),
+    config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+) -> None:
+    """Generate a tiling PBR material set (+ manifest). GPU-gated."""
+    from clay.config import load_config
+    from clay.material import MaterialGenerator
+
+    if not prompt and not image:
+        console.print("[red]Provide --prompt or --image.[/]")
+        raise typer.Exit(1)
+    cfg = load_config(config_path)
+    try:
+        res = MaterialGenerator(cfg).generate(
+            kind=kind, prompt=prompt or None, image_path=image or None,
+            resolution=resolution, out_dir=output_dir or cfg.output_dir,
+            stem=f"{kind}_material",
+        )
+    except Exception as err:  # noqa: BLE001 — surface backend/gating errors cleanly
+        console.print(f"[red]{err}[/]")
+        raise typer.Exit(1) from None
+    console.print(f"[bold green]✓[/] {res['manifest']} — maps: {', '.join(res['maps']) or 'none'}")
 
 
 @app.command()
