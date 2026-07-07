@@ -108,6 +108,39 @@ def list_assets(ctx: ToolContext, args: dict) -> dict:
     return ok(assets=assets, count=len(assets))
 
 
+@tool(
+    "generate_variations",
+    "Generate N seed-varied variations of a prop/livery via the shape model — "
+    "for populating streets or building a catalogue. Needs a deployed GPU backend.",
+    {
+        "mode": {"type": "string", "enum": ["image", "text"], "optional": True},
+        "prompt": "string?",
+        "image_path": "string?",
+        "count": {"type": "integer", "minimum": 1, "optional": True},
+        "seed": {"type": "integer", "optional": True},
+    },
+    generates=True,
+)
+def generate_variations(ctx: ToolContext, args: dict) -> dict:
+    from clay.variations import generate_variations as _gv
+
+    mode = args.get("mode", "image")
+    if mode == "image" and not args.get("image_path"):
+        return error("invalid", "image mode needs image_path")
+    if mode == "text" and not args.get("prompt"):
+        return error("invalid", "text mode needs prompt")
+    try:
+        res = _gv(
+            ctx.config, mode=mode,
+            prompt=args.get("prompt"), image_path=args.get("image_path"),
+            count=int(args.get("count", 4)), seed=int(args.get("seed", 0)),
+            out_dir=ctx.output_dir,
+        )
+    except RuntimeError as err:
+        return error("no_backend", str(err))
+    return ok(**res)
+
+
 @tool("list_providers", "List the available 3D model providers and their modes.")
 def list_providers(ctx: ToolContext, args: dict) -> dict:
     from clay.providers import available_providers, get_provider
