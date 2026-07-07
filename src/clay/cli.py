@@ -349,6 +349,38 @@ def export_fbx_cmd(
 
 
 @app.command()
+def variations(
+    image: str = typer.Option("", help="Input image (image → 3D)"),
+    prompt: str = typer.Option("", help="Text prompt (text → 3D)"),
+    count: int = typer.Option(4, help="Number of variations"),
+    seed: int = typer.Option(0, help="Base seed (variations use seed, seed+1, …)"),
+    fmt: str = typer.Option("glb", "--format", help="Output format"),
+    output_dir: str = typer.Option("", help="Output directory (default: output_dir)"),
+    config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+) -> None:
+    """Generate N seed-varied variations of a prop/livery. GPU-gated."""
+    from clay.config import load_config
+    from clay.variations import generate_variations
+
+    if not image and not prompt:
+        console.print("[red]Provide --image or --prompt.[/]")
+        raise typer.Exit(1)
+    cfg = load_config(config_path)
+    mode = "image" if image else "text"
+    try:
+        res = generate_variations(
+            cfg, mode=mode, prompt=prompt or None, image_path=image or None,
+            count=count, seed=seed, fmt=fmt, out_dir=output_dir or cfg.output_dir,
+        )
+    except (RuntimeError, ValueError) as err:
+        console.print(f"[red]{err}[/]")
+        raise typer.Exit(1) from None
+    console.print(f"[bold green]✓[/] {res['count']} variations:")
+    for v in res["variations"]:
+        console.print(f"  seed {v['seed']} · {v['triangles']} tris · {v['path']}")
+
+
+@app.command()
 def texture(
     mesh: str = typer.Argument(help="Input mesh to (re)texture"),
     prompt: str = typer.Option("", help="Texture/livery prompt"),
