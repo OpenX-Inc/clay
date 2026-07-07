@@ -60,9 +60,14 @@ def test_unwired_provider_fails_visibly():
 
 
 def test_texture_is_honest_503():
-    resp = client.post("/texture", json={"mesh_b64": "Zm9v"})
+    resp = client.post("/texture", json={"mesh_b64": "Zm9v", "prompt": "livery"})
     assert resp.status_code == 503
     assert "not wired" in resp.json()["detail"]
+
+
+def test_texture_requires_inputs():
+    assert client.post("/texture", json={"mesh_b64": "Zm9v"}).status_code == 400
+    assert client.post("/texture", json={"prompt": "x"}).status_code == 400
 
 
 def test_remesh_requires_mesh():
