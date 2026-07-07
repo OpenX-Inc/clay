@@ -21,6 +21,7 @@ def generate(
     target_tris: int = typer.Option(60000, help="Triangle budget for the game-ready mesh"),
     output: str = typer.Option("", help="Output path (auto-generated if empty)"),
     config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+    collision: bool = typer.Option(False, "--collision", help="Also emit a convex collision proxy"),
     dry_run: bool = typer.Option(False, help="Validate + print the plan; no backend call"),
 ) -> None:
     """Generate a game-ready 3D asset from an image or a prompt."""
@@ -62,6 +63,16 @@ def generate(
         f"[bold green]✓[/] saved [bold]{asset.path}[/] "
         f"— {asset.triangles} tris, {asset.format}"
     )
+    # Opt-in stages fold in here (reusing the same core functions the tools use).
+    if collision:
+        from pathlib import Path
+
+        from clay.collision import make_collision
+
+        res = make_collision(asset.path, kind="convex", out_dir=Path(cfg.output_dir))
+        console.print(
+            f"  [green]+ collider[/] {res['path']} — {res['hulls']} hull, {res['faces']} faces"
+        )
 
 
 @app.command()
@@ -245,6 +256,39 @@ def export_fbx_cmd(
         raise typer.Exit(1) from None
     console.print(
         f"[bold green]✓[/] {out} — {res.get('faces')} faces, {res.get('mesh_count')} mesh(es)"
+    )
+
+
+@app.command()
+def collision(
+    mesh: str = typer.Argument(help="Input mesh"),
+    kind: str = typer.Option("convex", help="convex | box | simplified | compound"),
+    max_hulls: int = typer.Option(32, help="Max hulls for compound (VHACD)"),
+    output: str = typer.Option("", help="Output collider path (default: output_dir)"),
+    config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+) -> None:
+    """Build a physics collider (convex / box / simplified / compound) for a mesh."""
+    from pathlib import Path
+
+    from clay.collision import make_collision
+    from clay.config import load_config
+
+    cfg = load_config(config_path)
+    src = Path(mesh)
+    if not src.exists():
+        console.print(f"[red]No mesh at {src}[/]")
+        raise typer.Exit(1)
+    try:
+        res = make_collision(
+            src, kind=kind, max_hulls=max_hulls,
+            out_path=output or None, out_dir=Path(cfg.output_dir),
+        )
+    except ValueError as err:
+        console.print(f"[red]{err}[/]")
+        raise typer.Exit(1) from None
+    console.print(
+        f"[bold green]✓[/] {res['path']} — {res['kind']} collider, "
+        f"{res['hulls']} hull(s), {res['faces']} faces"
     )
 
 
