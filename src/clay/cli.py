@@ -189,6 +189,38 @@ def mcp(
 
 
 @app.command()
+def preview(
+    mesh: str = typer.Argument(help="Path to a .glb asset"),
+    output: str = typer.Option("", help="Output HTML path (default: alongside the mesh)"),
+) -> None:
+    """Build a self-contained interactive web viewer for a GLB (orbit/zoom, like Meshy)."""
+    from pathlib import Path
+
+    from clay.preview import make_viewer_html
+
+    src = Path(mesh)
+    if not src.exists():
+        console.print(f"[red]No mesh at {src}[/]")
+        raise typer.Exit(1)
+
+    tris = ""
+    try:
+        import trimesh
+
+        loaded = trimesh.load(src, force="mesh")
+        tris = int(len(loaded.faces))
+    except Exception:  # noqa: BLE001 — tri count is cosmetic
+        pass
+
+    out = make_viewer_html(
+        src, output or None, title=src.stem, tris=tris, fmt=src.suffix.lstrip(".")
+    )
+    console.print(
+        f"[bold green]✓[/] viewer → [bold]{out}[/] — open it in any browser to spin it."
+    )
+
+
+@app.command()
 def providers() -> None:
     """List the available 3D model providers."""
     from clay.providers import available_providers, get_provider
