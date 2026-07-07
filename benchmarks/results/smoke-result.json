@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "name": "pot",
+  "provider": "trellis2",
+  "mode": "image",
+  "target_tris": 20000,
+  "format": "glb",
+  "raw_triangles": 11402,
+  "final_triangles": 11402,
+  "reduction_ratio": 0.0,
+  "generation_time_s": 202.0,
+  "postprocess_time_s": 0.5,
+  "total_gpu_time_s": 202.5,
+  "output_size_kb": 1226.1,
+  "sample": "benchmarks/results/samples/pot.glb",
+  "estimated_cost_usd": 0.1069
+}
