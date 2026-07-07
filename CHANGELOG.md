@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.0](https://github.com/OpenX-Inc/clay/compare/v0.7.0...v0.8.0) (2026-07-07)
+
+
+### Features
+
+* **blender:** per-profile auto-rig (biped/quadruped/vehicle/generic) → skinned/parented FBX ([5db594a](https://github.com/OpenX-Inc/clay/commit/5db594a8ddcc57d78b605634d3172dd74101bb04))
+* **cli:** clay rig command + --rig/--rig-type opt-in flags on generate ([fa3c9bd](https://github.com/OpenX-Inc/clay/commit/fa3c9bd83fc38db3442bda204e1b292162d11c04))
+* **tools:** rig_asset tool (heuristic per-profile, Blender-backed) ([a9eb5f7](https://github.com/OpenX-Inc/clay/commit/a9eb5f753b7a856dd5cf83b4dc48363b36acc621))
+
 ## [0.7.0](https://github.com/OpenX-Inc/clay/compare/v0.6.0...v0.7.0) (2026-07-07)
 
 
