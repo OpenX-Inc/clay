@@ -25,6 +25,8 @@ def generate(
     with_lods: bool = typer.Option(False, "--with-lods", help="Also emit an LOD chain"),
     retopo: bool = typer.Option(False, "--retopo", help="Also emit a retopologized (quad) copy"),
     bake: bool = typer.Option(False, "--bake", help="Also bake a normal map (decimated low-poly)"),
+    rig: bool = typer.Option(False, "--rig", help="Also auto-rig the asset (FBX)"),
+    rig_type: str = typer.Option("generic", "--rig-type", help="humanoid|quadruped|vehicle|generic"),  # noqa: E501
     dry_run: bool = typer.Option(False, help="Validate + print the plan; no backend call"),
 ) -> None:
     """Generate a game-ready 3D asset from an image or a prompt."""
@@ -118,6 +120,21 @@ def generate(
             )
         except BlenderError as err:
             console.print(f"  [yellow]bake skipped[/] — {err}")
+    if rig:
+        from pathlib import Path
+
+        from clay.blender import BlenderError
+        from clay.blender import rig_asset as _rig
+
+        out = Path(cfg.output_dir) / f"{Path(asset.path).stem}_rigged.fbx"
+        try:
+            res = _rig(asset.path, out, rig_type=rig_type, blender=cfg.blender.path or None)
+            extra = f", {res['wheels']} wheels" if res.get("wheels") is not None else ""
+            console.print(
+                f"  [green]+ rig[/] {out} — {res['rig_type']}, {res['bones']} bones{extra}"
+            )
+        except BlenderError as err:
+            console.print(f"  [yellow]rig skipped[/] — {err}")
 
 
 @app.command()
@@ -301,6 +318,37 @@ def export_fbx_cmd(
         raise typer.Exit(1) from None
     console.print(
         f"[bold green]✓[/] {out} — {res.get('faces')} faces, {res.get('mesh_count')} mesh(es)"
+    )
+
+
+@app.command()
+def rig(
+    mesh: str = typer.Argument(help="Input mesh"),
+    rig_type: str = typer.Option("generic", "--type", help="humanoid|quadruped|vehicle|generic"),
+    output: str = typer.Option("", help="Output FBX path (default: output_dir)"),
+    config_path: str = typer.Option("config/config.toml", help="Path to config file"),
+) -> None:
+    """Auto-rig a mesh per profile → skinned/parented FBX (heuristic). Via Blender."""
+    from pathlib import Path
+
+    from clay.blender import BlenderError
+    from clay.blender import rig_asset as _rig
+    from clay.config import load_config
+
+    cfg = load_config(config_path)
+    src = Path(mesh)
+    if not src.exists():
+        console.print(f"[red]No mesh at {src}[/]")
+        raise typer.Exit(1)
+    out = output or str(Path(cfg.output_dir) / f"{src.stem}_rigged.fbx")
+    try:
+        res = _rig(src, out, rig_type=rig_type, blender=cfg.blender.path or None)
+    except BlenderError as err:
+        console.print(f"[red]{err}[/]")
+        raise typer.Exit(1) from None
+    extra = f", {res['wheels']} wheels" if res.get("wheels") is not None else ""
+    console.print(
+        f"[bold green]✓[/] {out} — {res['rig_type']} rig, {res['bones']} bones{extra}"
     )
 
 
