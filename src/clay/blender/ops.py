@@ -38,3 +38,29 @@ def retopo(
         blender=blender,
         timeout=1800,
     )
+
+
+def bake_normals(
+    high_path: str | Path,
+    output_path: str | Path,
+    normal_map: str | Path,
+    *,
+    low_path: str | Path | None = None,
+    resolution: int = 1024,
+    ao: bool = False,
+    ao_map: str | Path | None = None,
+    blender: str | None = None,
+) -> dict:
+    """Bake high→low tangent-space normal map (+ optional AO). Returns script result."""
+    data: dict = {
+        "high": str(high_path),
+        "output": str(output_path),
+        "normal_map": str(normal_map),
+        "resolution": int(resolution),
+        "ao": bool(ao),
+    }
+    if low_path:
+        data["low"] = str(low_path)
+    if ao and ao_map:
+        data["ao_map"] = str(ao_map)
+    return run_script("bake_normals.py", data, blender=blender, timeout=1800)
