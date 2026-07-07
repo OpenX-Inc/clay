@@ -96,11 +96,27 @@ def remesh(body: dict) -> dict:
 
 @app.post("/texture")
 def texture(body: dict) -> dict:
-    raise HTTPException(
-        503,
-        "texture generation is not wired yet — contribute it in "
-        "clay/gpu_backend/runtime.py (needs the gpu extra + weights).",
-    )
+    """UV-aware (re)texture a mesh. GPU-gated: 503 with an honest message until wired."""
+    if not body.get("mesh_b64"):
+        raise HTTPException(400, "mesh_b64 is required")
+    if not body.get("prompt") and not body.get("image_b64"):
+        raise HTTPException(400, "prompt or image_b64 is required")
+    from clay.gpu_backend import runtime
+
+    try:
+        return runtime.generate_texture(
+            body.get("provider", "paint3d"),
+            mesh_b64=body["mesh_b64"],
+            prompt=body.get("prompt"),
+            image_b64=body.get("image_b64"),
+            resolution=int(body.get("resolution", 1024)),
+            keep_uvs=bool(body.get("keep_uvs", True)),
+            emit_decals=bool(body.get("emit_decals", False)),
+        )
+    except RuntimeError as err:
+        raise HTTPException(503, str(err)) from err
+    except ImportError as err:
+        raise HTTPException(503, f"texture deps missing (gpu extra): {err}") from err
 
 
 @app.post("/material")

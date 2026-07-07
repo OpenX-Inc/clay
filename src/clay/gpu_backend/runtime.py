@@ -134,3 +134,27 @@ def generate_material(
         "in clay/gpu_backend/runtime.py (needs the gpu extra + a tiling-PBR material "
         "model + weights)."
     )
+
+
+def generate_texture(
+    provider: str,
+    *,
+    mesh_b64: str,
+    prompt: str | None = None,
+    image_b64: str | None = None,
+    resolution: int = 1024,
+    keep_uvs: bool = True,
+    emit_decals: bool = False,
+    **opts,
+) -> dict:
+    """UV-aware (re)texture a mesh. GPU-gated: fails visibly until wired.
+
+    Wire a current-SOTA open, self-hostable UV-aware paint model here (e.g.
+    Paint3D / SyncMVD / TEXTure) and return base64 maps + optional ``mesh_b64``
+    (re-textured) + ``decals``.
+    """
+    raise RuntimeError(
+        f"texture runtime for provider {provider!r} is not wired yet — contribute it "
+        "in clay/gpu_backend/runtime.py (needs the gpu extra + a UV-aware paint model + "
+        "weights)."
+    )
