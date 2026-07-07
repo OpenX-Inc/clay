@@ -39,3 +39,9 @@ provider = "modal"          # modal (automated) | aws | gcp (scaffolded)
 name = "clay-gpu-backend"
 gpu = "A100-80GB"
 scaledown_window = 300
+
+# Headless Blender — Clay's mesh-processing engine (FBX export, rigging, retopo,
+# baking). Leave empty to auto-detect via CLAY_BLENDER / BLENDER_PATH / PATH.
+# Blender-backed tools fail visibly when none is found.
+[blender]
+path = ""                   # e.g. /opt/blender-4.2/blender
