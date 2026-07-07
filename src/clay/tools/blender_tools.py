@@ -109,3 +109,40 @@ def bake_normals(ctx: ToolContext, args: dict) -> dict:
         path=str(out_mesh), normal_map=str(normal), ao_map=res.get("ao_map"),
         resolution=res.get("resolution"), low_faces=res.get("low_faces"),
     )
+
+
+@tool(
+    "rig_asset",
+    "Auto-rig a mesh per profile → skinned/parented FBX. humanoid=biped, "
+    "quadruped=4-leg, vehicle=split body+wheels with per-wheel bones/sockets, "
+    "generic=bone chain. Heuristic/best-effort. Blender-backed.",
+    {
+        "input_path": "string",
+        "rig_type": {
+            "type": "string",
+            "enum": ["humanoid", "quadruped", "vehicle", "generic"],
+            "optional": True,
+        },
+        "options": "object?",
+    },
+)
+def rig_asset(ctx: ToolContext, args: dict) -> dict:
+    from clay.blender import rig_asset as _rig
+
+    src = Path(args["input_path"])
+    if not src.exists():
+        return error("not_found", f"no mesh at {src}")
+    rig_type = args.get("rig_type", "generic")
+    out = ctx.output_dir / f"{src.stem}_rigged.fbx"
+    try:
+        res = _rig(
+            src, out, rig_type=rig_type,
+            options=args.get("options") or {},
+            blender=ctx.config.blender.path or None,
+        )
+    except BlenderError as err:
+        return error("blender_unavailable", str(err))
+    return ok(
+        path=str(out), rig_type=res.get("rig_type"), bones=res.get("bones"),
+        wheels=res.get("wheels"),
+    )
