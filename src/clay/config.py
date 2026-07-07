@@ -18,9 +18,11 @@ class GPUBackendConfig(BaseModel):
 
 
 class ProvidersConfig(BaseModel):
-    """Which 3D model provider to use (swappable)."""
+    """Which model provider to use per category (swappable)."""
 
-    model: str = "trellis2"  # trellis2 | hunyuan3d | hi3dgen
+    model: str = "trellis2"           # shape: trellis2 | hunyuan3d | hi3dgen
+    material: str = "stablematerials"  # material: stablematerials | matfuse
+    texture: str = "paint3d"          # texture: paint3d | syncmvd | texture
 
 
 class PostprocessConfig(BaseModel):
