@@ -16,7 +16,7 @@ import httpx
 
 from clay.config import Config
 
-MAPS = ("base_color", "normal", "roughness", "metallic", "ao")
+MAPS = ("base_color", "normal", "roughness", "metallic", "ao", "height")
 TILING_KINDS = ("facade", "road", "ground")
 
 
