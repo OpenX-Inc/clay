@@ -43,21 +43,27 @@ config-driven.
 
 ## Models (pluggable)
 
-| Provider | License | Role |
-|----------|---------|------|
-| TRELLIS-2 | MIT | primary |
-| Hunyuan3D-2.1 | — | alt |
-| Hi3DGen | — | alt |
+| Category | Provider | License | Status |
+|----------|----------|---------|--------|
+| shape | TRELLIS-2 (default) | MIT | ✅ validated (A10G) |
+| shape | Hunyuan3D-2.1 | non-commercial | ✅ validated (A10G) |
+| shape | Hi3DGen | MIT | ✅ validated (A10G) |
+| material | StableMaterials (default) | Apache-2.0 | ✅ validated (A10G) |
+| texture | Hunyuan3D-Paint | non-commercial | ✅ validated (A10G) |
+| texture | Paint3D / SyncMVD | commercial-OK | pluggable slot |
 
 Swap via config — like Flow's TTS providers. Providers are metadata descriptors
 in the orchestrator; the actual model inference runs on the GPU backend.
+Metrics per runtime: [`benchmarks/results/MODEL_RUNTIMES.md`](benchmarks/results/MODEL_RUNTIMES.md).
 
 > **Honest status:** the orchestrator, the game-ready post-processing (the
 > differentiator), `clay deploy`, and the agent + MCP surfaces are implemented
-> and tested. Model inference is **GPU-gated** — it needs a deployed backend
-> with weights + a CUDA device. TRELLIS-2 image-to-3D is wired against its
-> documented pipeline; other providers/modes fail *visibly* (a clear error),
-> never with fake output.
+> and tested. Every wired model runtime (TRELLIS-2, Hunyuan3D-2.1, Hi3DGen,
+> StableMaterials, Hunyuan3D-Paint) has produced **real output validated on
+> Modal A10G** — inference is still GPU-gated (needs a deployed backend with a
+> CUDA device), and unwired providers/modes fail *visibly*, never with fake
+> output. MIT shape (TRELLIS-2, Hi3DGen) is commercial-OK; Hunyuan weights are
+> non-commercial self-host only.
 
 ## Game-ready asset tools
 
@@ -203,8 +209,7 @@ clay generate --image nganya.png --format glb --target-tris 60000
 - [x] TRELLIS-2 inference — image-to-3D validated on GPU (real textured GLBs)
 - [x] FBX export + rig / retopo / normal-bake (headless Blender engine)
 - [x] Colliders (VHACD/convex) · LOD chains · seed variations
-- [x] Material + texture endpoints + pluggable provider categories (GPU-gated)
-- [ ] Hunyuan3D-2.1 + Hi3DGen runtimes; wire material/texture models
+- [x] Material + texture + Hunyuan3D-2.1/Hi3DGen shape runtimes — validated on Modal A10G
 - [ ] AWS + GCP first-class backend deploy
 - [~] OpenX Clay managed service — later
 
