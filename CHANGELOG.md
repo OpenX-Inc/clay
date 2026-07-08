@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.16.0](https://github.com/OpenX-Inc/clay/compare/v0.15.0...v0.16.0) (2026-07-08)
+
+
+### Features
+
+* **mcp:** add --workers flag for concurrent serving ([#18](https://github.com/OpenX-Inc/clay/issues/18)) ([cbaff17](https://github.com/OpenX-Inc/clay/commit/cbaff17905214fae898587a8aa102198a5b7cb2a)), closes [#17](https://github.com/OpenX-Inc/clay/issues/17)
+
+
+### Documentation
+
+* **benchmarks:** add initial benchmark assets + 3D generation viewers ([b40144d](https://github.com/OpenX-Inc/clay/commit/b40144d09dc518870d3cfe918fc2bb2e2c987de3))
+* **benchmarks:** track result meshes (.glb) so users can see generations ([99b3eea](https://github.com/OpenX-Inc/clay/commit/99b3eea2bfacada6fe501b8bd5005cda8a251a66))
+* **readme:** mark all 4 GPU model runtimes validated on Modal ([f10fbf9](https://github.com/OpenX-Inc/clay/commit/f10fbf9573c01cc8b04419f9bd0862135fbe7415))
+
 ## [0.15.0](https://github.com/OpenX-Inc/clay/compare/v0.14.0...v0.15.0) (2026-07-08)
 
 
