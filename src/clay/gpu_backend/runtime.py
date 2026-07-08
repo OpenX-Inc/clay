@@ -119,6 +119,70 @@ def generate(
     )
 
 
+@functools.lru_cache(maxsize=1)
+def _load_stablematerials():
+    """Load the StableMaterials tiling-PBR pipeline (diffusers, trust_remote_code)."""
+    import torch
+    from diffusers import DiffusionPipeline
+
+    model_id = os.environ.get("CLAY_MATERIAL_MODEL", "gvecchio/StableMaterials")
+    pipe = DiffusionPipeline.from_pretrained(
+        model_id, trust_remote_code=True, torch_dtype=torch.float16
+    )
+    pipe.to("cuda")
+    return pipe
+
+
+def _map_to_png_b64(img, resolution: int) -> str:
+    """Encode a material map (PIL image or CHW/HWC tensor/array) to a base64 PNG."""
+    import numpy as np
+    from PIL import Image
+
+    if not isinstance(img, Image.Image):
+        try:
+            import torch
+
+            if isinstance(img, torch.Tensor):
+                img = img.detach().float().cpu().clamp(0, 1).numpy()
+        except Exception:  # noqa: BLE001 — torch optional at encode time
+            pass
+        arr = np.asarray(img)
+        if arr.dtype != np.uint8:
+            arr = (arr.clip(0, 1) * 255).round().astype("uint8")
+        if arr.ndim == 3 and arr.shape[0] in (1, 3, 4) and arr.shape[2] not in (1, 3, 4):
+            arr = np.transpose(arr, (1, 2, 0))  # CHW → HWC
+        if arr.ndim == 3 and arr.shape[2] == 1:
+            arr = arr[:, :, 0]
+        img = Image.fromarray(arr)
+
+    img = img.convert("RGB").resize((resolution, resolution), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return base64.b64encode(buf.getvalue()).decode()
+
+
+def _extract_material_maps(material) -> dict:
+    """Pull standard PBR channels off a StableMaterials Material (attrs or dict)."""
+    aliases = {
+        "base_color": ("basecolor", "base_color", "albedo", "diffuse"),
+        "normal": ("normal", "normals"),
+        "roughness": ("roughness", "rough"),
+        "metallic": ("metallic", "metalness", "metal"),
+        "height": ("height", "displacement", "disp"),
+    }
+    as_dict = material.as_dict() if hasattr(material, "as_dict") else None
+    maps: dict = {}
+    for out_name, names in aliases.items():
+        for n in names:
+            val = getattr(material, n, None)
+            if val is None and isinstance(as_dict, dict):
+                val = as_dict.get(n)
+            if val is not None:
+                maps[out_name] = val
+                break
+    return maps
+
+
 def generate_material(
     provider: str,
     *,
@@ -129,17 +193,43 @@ def generate_material(
     tiling: bool = True,
     **opts,
 ) -> dict:
-    """Synthesise a tiling PBR material set. GPU-gated: fails visibly until wired.
+    """Synthesise a tiling PBR material set (base_color/normal/roughness/metallic/height).
 
-    Wire a current-SOTA open, self-hostable, commercially-usable tiling-PBR model
-    here (e.g. StableMaterials-style SD + PBR decompose) and return base64 maps:
-    ``{base_color_b64, normal_b64, roughness_b64, metallic_b64, ao_b64}``.
+    Wired for **StableMaterials** (Apache-2.0, SD-based, seamless PBR). Other
+    material providers fail visibly. Returns base64 maps per the /material contract.
     """
-    raise RuntimeError(
-        f"material runtime for provider {provider!r} is not wired yet — contribute it "
-        "in clay/gpu_backend/runtime.py (needs the gpu extra + a tiling-PBR material "
-        "model + weights)."
+    if provider != "stablematerials":
+        raise RuntimeError(
+            f"material runtime for provider {provider!r} is not wired — only "
+            "'stablematerials' is. Contribute others in clay/gpu_backend/runtime.py."
+        )
+    if not prompt:
+        raise RuntimeError("stablematerials requires a text prompt")
+
+    pipe = _load_stablematerials()
+    steps = int(opts.get("steps", os.environ.get("CLAY_MATERIAL_STEPS", "50")))
+    guidance = float(os.environ.get("CLAY_MATERIAL_GUIDANCE", "10.0"))
+    result = pipe(
+        prompt=prompt,
+        tileable=bool(tiling),
+        num_inference_steps=steps,
+        guidance_scale=guidance,
     )
+    material = result.images[0]
+    channels = _extract_material_maps(material)
+    if not channels:
+        raise RuntimeError(
+            "StableMaterials returned no recognizable maps — verify the pipeline API "
+            "(clay/gpu_backend/runtime.py:_extract_material_maps)."
+        )
+
+    out = {
+        "provider": "stablematerials", "kind": kind,
+        "resolution": int(resolution), "tiling": bool(tiling),
+    }
+    for name, img in channels.items():
+        out[f"{name}_b64"] = _map_to_png_b64(img, int(resolution))
+    return out
 
 
 def generate_texture(
