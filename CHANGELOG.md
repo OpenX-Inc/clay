@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/OpenX-Inc/clay/compare/v0.16.0...v0.17.0) (2026-07-08)
+
+
+### Features
+
+* **gpu:** TRELLIS-2 text-to-3D generation ([0ddd071](https://github.com/OpenX-Inc/clay/commit/0ddd071c13ec6bfacec4345796263531b37bb497))
+
 ## [0.16.0](https://github.com/OpenX-Inc/clay/compare/v0.15.0...v0.16.0) (2026-07-08)
 
 
