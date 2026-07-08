@@ -1,6 +1,6 @@
 <div align="center">
 
-# Clay
+<img src="docs/assets/clay-textmark.png" alt="OpenX Clay" width="260" />
 
 ### OpenX Clay — Meshy/Rodin, but yours.
 

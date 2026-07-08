@@ -45,6 +45,58 @@ def _load_trellis():
     return pipe
 
 
+@functools.lru_cache(maxsize=1)
+def _load_trellis_text():
+    """Load the TRELLIS-2 text-to-3D pipeline (GPU + weights required).
+
+    Same structured-latent backbone as the image pipeline, conditioned on a CLIP
+    text encoder instead of DINO image features.
+    """
+    os.environ.setdefault("ATTN_BACKEND", "xformers")
+    os.environ.setdefault("SPCONV_ALGO", "native")
+
+    from trellis.pipelines import TrellisTextTo3DPipeline
+
+    model_id = os.environ.get("CLAY_TRELLIS_TEXT_MODEL", "microsoft/TRELLIS-text-xlarge")
+    pipe = TrellisTextTo3DPipeline.from_pretrained(model_id)
+    pipe.cuda()
+    return pipe
+
+
+def _trellis_text_to_3d(
+    prompt: str, target_tris: int | None = None, seed: int | None = None
+) -> tuple[bytes, int]:
+    """Run TRELLIS-2 text-to-3D → (glb_bytes, triangle_count).
+
+    Follows the documented ``example_text.py`` usage: ``pipeline.run(prompt)``
+    then ``to_glb(gaussian, mesh, ...)`` — identical GLB extraction to the image
+    path, so the triangle-budget + baked-texture behaviour is the same.
+    """
+    from trellis.utils import postprocessing_utils
+
+    pipe = _load_trellis_text()
+    if seed is None:
+        seed = int(os.environ.get("CLAY_TRELLIS_SEED", "1"))
+    outputs = pipe.run(prompt, seed=int(seed), formats=["mesh", "gaussian"])
+    mesh = outputs["mesh"][0]
+
+    raw_faces = _extract_face_count(mesh)
+    if target_tris and raw_faces and raw_faces > target_tris:
+        simplify = max(0.0, min(0.98, 1.0 - target_tris / raw_faces))
+    else:
+        simplify = float(os.environ.get("CLAY_TRELLIS_SIMPLIFY", "0.0"))
+
+    glb = postprocessing_utils.to_glb(
+        outputs["gaussian"][0],
+        mesh,
+        simplify=simplify,
+        texture_size=int(os.environ.get("CLAY_TRELLIS_TEXSIZE", "1024")),
+    )
+    buf = io.BytesIO()
+    glb.export(buf, file_type="glb")
+    return buf.getvalue(), _count_faces(glb)
+
+
 def _trellis_image_to_3d(
     image_b64: str, target_tris: int | None = None, seed: int | None = None
 ) -> tuple[bytes, int]:
@@ -210,10 +262,13 @@ def generate(
             return _trellis_image_to_3d(
                 image_b64, target_tris=opts.get("target_tris"), seed=opts.get("seed")
             )
-        raise RuntimeError(
-            "TRELLIS-2 text-to-3D is not wired yet (image-to-3D is). "
-            "Wire the TRELLIS text pipeline in clay/gpu_backend/runtime.py."
-        )
+        if mode == "text":
+            if not prompt:
+                raise RuntimeError("prompt is required for text-to-3D")
+            return _trellis_text_to_3d(
+                prompt, target_tris=opts.get("target_tris"), seed=opts.get("seed")
+            )
+        raise RuntimeError(f"trellis2 supports image and text modes, got {mode!r}")
     if provider == "hunyuan3d":
         if mode == "image":
             if not image_b64:

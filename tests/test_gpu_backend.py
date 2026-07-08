@@ -59,6 +59,15 @@ def test_unwired_provider_fails_visibly():
     assert "not wired" in resp.json()["detail"]
 
 
+def test_trellis2_text_is_wired():
+    """TRELLIS-2 text-to-3D dispatch is wired (no 'not wired' stub); it validates
+    the prompt before touching the GPU, so this is exercisable without weights."""
+    from clay.gpu_backend import runtime
+
+    with pytest.raises(RuntimeError, match="prompt is required"):
+        runtime.generate("trellis2", "text", prompt=None)
+
+
 def test_texture_is_honest_503():
     resp = client.post("/texture", json={"mesh_b64": "Zm9v", "prompt": "livery"})
     assert resp.status_code == 503
