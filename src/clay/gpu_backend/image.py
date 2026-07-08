@@ -106,3 +106,37 @@ def build_material_image() -> modal.Image:
         .env({"HF_HOME": "/models"})
         .add_local_python_source("clay")
     )
+
+
+def build_hunyuan_image() -> modal.Image:
+    """Image for Hunyuan3D-2.1 shape (DiT flow-matching). CUDA devel + repo on PYTHONPATH."""
+    return (
+        modal.Image.from_registry(
+            "nvidia/cuda:12.1.1-devel-ubuntu22.04", add_python="3.11"
+        )
+        .apt_install(
+            "git", "build-essential", "ninja-build",
+            "libgl1", "libglib2.0-0", "libegl1", "libgles2",
+        )
+        .env(
+            {
+                "TORCH_CUDA_ARCH_LIST": CUDA_ARCH,
+                "HF_HOME": "/models",
+                "U2NET_HOME": "/models/u2net",
+                "PYTHONPATH": "/hunyuan3d/hy3dshape",
+                "CC": "gcc",
+                "CXX": "g++",
+            }
+        )
+        .pip_install("torch==2.4.0", "torchvision==0.19.0", index_url=TORCH_INDEX)
+        .pip_install(
+            "diffusers>=0.30.0", "transformers>=4.44.0", "accelerate", "safetensors",
+            "huggingface_hub", "einops", "omegaconf", "opencv-python-headless",
+            "trimesh", "pymeshlab", "rembg", "onnxruntime", "scikit-image",
+            "ninja", "pillow", "numpy<2", "timm", "sentencepiece", "fast-simplification",
+        )
+        .run_commands(
+            "git clone https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1.git /hunyuan3d"
+        )
+        .add_local_python_source("clay")
+    )
