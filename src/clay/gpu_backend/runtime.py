@@ -17,6 +17,7 @@ import base64
 import functools
 import io
 import os
+from pathlib import Path
 
 
 def _count_faces(mesh) -> int:
@@ -274,6 +275,52 @@ def generate_material(
     return out
 
 
+@functools.lru_cache(maxsize=1)
+def _load_hunyuanpaint():
+    """Load the Hunyuan3D-2.1 Paint pipeline (image-conditioned texturing).
+
+    NON-COMMERCIAL weights (Tencent Hunyuan) — a self-host option, not for the
+    managed service. Config uses repo-relative paths, so we run from the repo root.
+    """
+    os.chdir("/hunyuan3d")
+    try:
+        from utils.torchvision_fix import apply_fix
+
+        apply_fix()
+    except Exception:  # noqa: BLE001 — compat shim optional
+        pass
+    from textureGenPipeline import Hunyuan3DPaintConfig, Hunyuan3DPaintPipeline
+
+    views = int(os.environ.get("CLAY_PAINT_VIEWS", "6"))
+    res = int(os.environ.get("CLAY_PAINT_RES", "512"))
+    return Hunyuan3DPaintPipeline(Hunyuan3DPaintConfig(views, res))
+
+
+def _hunyuanpaint_texture(mesh_b64: str, image_b64: str, resolution: int) -> dict:
+    import tempfile
+
+    pipe = _load_hunyuanpaint()
+    tmp = Path(tempfile.mkdtemp(prefix="clay_tex_"))
+    mesh_in = tmp / "mesh.glb"
+    mesh_in.write_bytes(base64.b64decode(mesh_b64))
+    img_in = tmp / "image.png"
+    img_in.write_bytes(base64.b64decode(image_b64))
+    out_path = pipe(mesh_path=str(mesh_in), image_path=str(img_in))
+    # Hunyuan-Paint writes a textured OBJ (+ .mtl + texture PNG in the same dir).
+    # Load it with its textures and re-export a self-contained GLB.
+    import trimesh
+
+    loaded = trimesh.load(out_path)
+    buf = io.BytesIO()
+    loaded.export(buf, file_type="glb")
+    data = buf.getvalue()
+    return {
+        "provider": "hunyuanpaint",
+        "resolution": int(resolution),
+        "mesh_b64": base64.b64encode(data).decode(),
+    }
+
+
 def generate_texture(
     provider: str,
     *,
@@ -285,14 +332,18 @@ def generate_texture(
     emit_decals: bool = False,
     **opts,
 ) -> dict:
-    """UV-aware (re)texture a mesh. GPU-gated: fails visibly until wired.
-
-    Wire a current-SOTA open, self-hostable UV-aware paint model here (e.g.
-    Paint3D / SyncMVD / TEXTure) and return base64 maps + optional ``mesh_b64``
-    (re-textured) + ``decals``.
-    """
+    """UV-aware (re)texture a mesh. Wired for Hunyuan3D-Paint (image-conditioned,
+    NON-COMMERCIAL — self-host only). Commercial-OK providers (paint3d/syncmvd)
+    remain pluggable slots and fail visibly until wired."""
+    if provider == "hunyuanpaint":
+        if not image_b64:
+            raise RuntimeError(
+                "hunyuanpaint is image-conditioned — provide image_b64 (a reference "
+                "image). For prompt-only texturing, wire a text provider (paint3d/syncmvd)."
+            )
+        return _hunyuanpaint_texture(mesh_b64, image_b64, resolution)
     raise RuntimeError(
-        f"texture runtime for provider {provider!r} is not wired yet — contribute it "
-        "in clay/gpu_backend/runtime.py (needs the gpu extra + a UV-aware paint model + "
-        "weights)."
+        f"texture runtime for provider {provider!r} is not wired yet — 'hunyuanpaint' is "
+        "(non-commercial). Contribute a commercial-OK provider (paint3d/syncmvd) in "
+        "clay/gpu_backend/runtime.py."
     )
