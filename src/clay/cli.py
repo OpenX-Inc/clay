@@ -268,9 +268,19 @@ def agent(
 def mcp(
     host: str = typer.Option("127.0.0.1", help="Bind host"),
     port: int = typer.Option(0, help="Bind port (default from config)"),
+    workers: int = typer.Option(
+        1, help="Worker processes for concurrent serving (stateless; safe to raise)"
+    ),
+    timeout_keep_alive: int = typer.Option(
+        0, help="Keep-alive timeout (s) for long generations (0 = uvicorn default)"
+    ),
     config_path: str = typer.Option("config/config.toml", help="Path to config file"),
 ) -> None:
-    """Serve the Clay tools over MCP (streamable HTTP at /mcp)."""
+    """Serve the Clay tools over MCP (streamable HTTP at /mcp).
+
+    Raise --workers for parallel callers (e.g. multiple agents generating at
+    once) so a slow generation on one worker no longer blocks the others.
+    """
     import os
 
     import clay.tools.all  # noqa: F401 — register tools so the count is accurate
@@ -281,11 +291,17 @@ def mcp(
     cfg = load_config(config_path)
     os.environ.setdefault("CLAY_CONFIG", config_path)
     resolved_port = port or cfg.mcp.port
+    plural = "s" if workers != 1 else ""
     console.print(
         f"[bold green]Clay MCP[/] — http://{host}:{resolved_port}/mcp "
-        f"({len(REGISTRY)} tools loaded)"
+        f"({len(REGISTRY)} tools loaded, {workers} worker{plural})"
     )
-    run(host=host, port=resolved_port)
+    run(
+        host=host,
+        port=resolved_port,
+        workers=workers,
+        timeout_keep_alive=timeout_keep_alive or None,
+    )
 
 
 @app.command()

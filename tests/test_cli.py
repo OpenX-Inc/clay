@@ -34,3 +34,13 @@ def test_generate_rejects_text_for_image_only_provider(tmp_path):
     )
     assert result.exit_code == 1
     assert "does not support" in result.output
+
+
+def test_mcp_help_exposes_workers_flag():
+    import re
+
+    result = runner.invoke(app, ["mcp", "--help"], env={"COLUMNS": "200"})
+    assert result.exit_code == 0
+    clean = re.sub(r"\x1b\[[0-9;]*m", "", result.output)
+    assert "--workers" in clean
+    assert "--timeout-keep-alive" in clean

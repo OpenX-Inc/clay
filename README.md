@@ -147,9 +147,16 @@ clay agent -m "generate a low-poly sword from sword.png at 20k tris"
 # Or expose the same tools to external coding agents over MCP
 export CLAY_MCP_TOKEN="your-secret"
 clay mcp                       # http://127.0.0.1:8770/mcp  (Claude Code, Cursor, Codex)
+
+# Serving parallel agents? Scale to N worker processes (stateless — safe):
+clay mcp --workers 4 --timeout-keep-alive 120
 ```
 
 - **Connect Claude Code:** `claude mcp add --transport http clay http://127.0.0.1:8770/mcp`
+- **Concurrent serving:** `--workers N` runs N uvicorn workers so a slow
+  generation on one worker no longer blocks parallel callers (the session
+  manager is `stateless`, so there's no cross-worker affinity). Bump
+  `--timeout-keep-alive` for long GPU generations.
 - The agent + MCP server are dependency-light and self-hostable; `remesh_asset`
   runs on CPU, `generate_asset` needs the deployed GPU backend.
 - Configure under `[agent]` / `[mcp]` — see `config/config.example.toml`.
