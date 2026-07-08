@@ -39,6 +39,18 @@ Prompt: *"Nairobi CBD glass office facade, seamless PBR material"* → 5 tiling 
 | `facade_metallic.png` | grayscale scalar |
 | `facade_height.png` | grayscale displacement |
 
+## Texture — `hunyuanpaint` (Hunyuan3D-Paint, NON-COMMERCIAL, self-host only)
+`modal run benchmarks/run_texture.py --mesh <mesh.glb> --image <ref.png>`
+
+| Input mesh | Ref image | Result | Texture |
+|------------|-----------|--------|---------|
+| pot.glb (11.4k tris) | pot.png | textured GLB | 2048² baked |
+
+Image-conditioned re-texturing onto the mesh's UVs; output is a self-contained
+GLB (OBJ+MTL+texture re-exported). **Non-commercial weights** — a self-host
+option, not offered by the managed service. (Exit-time `bpy` SIGSEGV is a known
+Blender-module teardown crash, after the result is returned — harmless.)
+
 ## Pending runtimes
-- `texture` (`paint3d`/SyncMVD) — wired at contract/tool level; model runtime TBD.
 - `hi3dgen` (Stable-X) — shape provider slot; model runtime TBD.
+- Commercial-OK texture (`paint3d`/`syncmvd`) — pluggable slots, TBD.
