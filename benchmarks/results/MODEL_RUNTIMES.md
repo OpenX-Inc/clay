@@ -16,6 +16,19 @@ generations; material maps are under `material/`.
 | character | character.png | 19,522 | 1024² PBR | ~29 s | ~$0.015 |
 | prop | prop.png | 10,287 | 1024² PBR | ~41 s | ~$0.022 |
 
+### Text → 3D — `trellis2` (`microsoft/TRELLIS-text-xlarge`, MIT)
+`modal run benchmarks/run_text.py --prompt "…" --target-tris 80000 --name matatu`
+
+| Prompt (gist) | Final tris | Texture | Size |
+|---------------|-----------|---------|------|
+| Nairobi 'nganya' matatu — customized 33-seater minibus | 75,749 | 1024² PBR | 3.1 MB |
+
+Same structured-latent backbone as image→3D, conditioned on a CLIP text encoder.
+**Note:** CLIP caps the prompt at **77 tokens**, so text→3D captures the subject
++ broad form (the minibus), not a long fine-grained spec — for exhaustive detail,
+image→3D from a reference render is stronger. `benchmarks/run_text.py` also emits a
+self-contained `<model-viewer>` HTML next to the GLB.
+
 ## Shape — `hunyuan3d` (Hunyuan3D-2.1)
 `modal run benchmarks/run_hunyuan.py`
 
