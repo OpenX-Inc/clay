@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.13.0](https://github.com/OpenX-Inc/clay/compare/v0.12.0...v0.13.0) (2026-07-08)
+
+
+### Features
+
+* **bench:** run_hunyuan — validate Hunyuan3D shape runtime on Modal ([46ee063](https://github.com/OpenX-Inc/clay/commit/46ee063500e6028065c95be8bb4c9683328c75c3))
+* **gpu-backend:** Hunyuan3D Modal image (repo on PYTHONPATH, mc path, no diso) ([c17f484](https://github.com/OpenX-Inc/clay/commit/c17f484f646a35a2d76d209953328d64365c982b))
+* **gpu-backend:** wire Hunyuan3D-2.1 shape runtime (image→3D, mc extractor; validated watertight on A10G) ([2c6c3da](https://github.com/OpenX-Inc/clay/commit/2c6c3da1f0ddba987d1a69f0f7731531b1ebdf22))
+
 ## [0.12.0](https://github.com/OpenX-Inc/clay/compare/v0.11.0...v0.12.0) (2026-07-08)
 
 
