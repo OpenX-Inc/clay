@@ -27,7 +27,10 @@ KAOLIN_LINKS = "https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.4.0_cu1
 UTILS3D = "git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8"
 
 
-def build_trellis_image() -> modal.Image:
+def _trellis_base() -> modal.Image:
+    """Shared TRELLIS CUDA base (torch + spconv/xformers/kaolin + compiled
+    nvdiffrast/diffoctreerast/diff-gaussian-rast + TRELLIS repo). No add_local —
+    builders append their final steps + add_local_python_source last."""
     return (
         modal.Image.from_registry(
             "nvidia/cuda:12.1.1-devel-ubuntu22.04", add_python="3.11"
@@ -82,6 +85,26 @@ def build_trellis_image() -> modal.Image:
         # Clay's post-processing needs fast-simplification for decimation. Added
         # as a late layer so the compiled CUDA extensions above stay cached.
         .pip_install("fast-simplification>=0.1.7", "pygltflib>=1.16.0")
+    )
+
+
+def build_trellis_image() -> modal.Image:
+    """TRELLIS-2 shape image."""
+    return _trellis_base().add_local_python_source("clay")
+
+
+def build_hi3dgen_image() -> modal.Image:
+    """Hi3DGen shape image (MIT, Bytedance) — TRELLIS-derived, so it reuses the
+    TRELLIS CUDA base. Adds diffusers (StableNormal) + the Hi3DGen repo. The
+    StableNormal predictor is fetched via torch.hub at first run."""
+    return (
+        _trellis_base()
+        .pip_install(
+            "diffusers==0.30.0", "transformers==4.46.0", "huggingface-hub==0.30.2",
+            "accelerate", "timm", "kornia",
+        )
+        .run_commands("git clone https://github.com/Stable-X/Hi3DGen.git /hi3dgen")
+        .env({"PYTHONPATH": "/hi3dgen", "TORCH_HOME": "/models/torch"})
         .add_local_python_source("clay")
     )
 

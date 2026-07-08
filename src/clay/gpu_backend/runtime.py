@@ -128,6 +128,72 @@ def _hunyuan3d_image_to_3d(image_b64: str, target_tris: int | None = None) -> tu
     return buf.getvalue(), _count_faces(mesh)
 
 
+@functools.lru_cache(maxsize=1)
+def _load_hi3dgen():
+    """Load Hi3DGen (MIT) — TRELLIS-normal geometry pipeline + StableNormal predictor."""
+    import torch
+    from hi3dgen.pipelines import Hi3DGenPipeline
+
+    model_id = os.environ.get("CLAY_HI3DGEN_MODEL", "Stable-X/trellis-normal-v0-1")
+    pipe = Hi3DGenPipeline.from_pretrained(model_id)
+    pipe.cuda()
+    # StableNormal loads yoso + BiRefNet from a "weights/<name>" dir relative to
+    # CWD — stage both under a persistent run dir and run from there.
+    from huggingface_hub import snapshot_download
+
+    run_dir = "/models/hi3dgen_run"
+    os.makedirs(run_dir, exist_ok=True)
+    os.chdir(run_dir)
+    snapshot_download("Stable-X/yoso-normal-v1-8-1", local_dir="weights/yoso-normal-v1-8-1")
+    snapshot_download("ZhengPeng7/BiRefNet", local_dir="weights/BiRefNet")
+    normal_predictor = torch.hub.load(
+        "hugoycj/StableNormal", "StableNormal_turbo", trust_repo=True,
+        yoso_version="yoso-normal-v1-8-1", local_cache_dir="weights",
+    )
+    return pipe, normal_predictor
+
+
+def _hi3dgen_image_to_3d(
+    image_b64: str, target_tris: int | None = None, seed: int | None = None
+) -> tuple[bytes, int]:
+    """Run Hi3DGen image→normal→3D → (glb_bytes, triangle_count)."""
+    from PIL import Image
+
+    pipe, normal_predictor = _load_hi3dgen()
+    image = Image.open(io.BytesIO(base64.b64decode(image_b64))).convert("RGB")
+    image = pipe.preprocess_image(image, resolution=1024)
+    # Hi3DGen's preprocess already removes the background, so skip StableNormal's
+    # BiRefNet masking (data_type "indoor" → no extra mask), avoiding its heavy
+    # backbone-weight download. Override via CLAY_HI3DGEN_DATATYPE.
+    data_type = os.environ.get("CLAY_HI3DGEN_DATATYPE", "indoor")
+    normal_image = normal_predictor(
+        image, resolution=768, match_input_resolution=True, data_type=data_type
+    )
+    if seed is None:
+        seed = int(os.environ.get("CLAY_HI3DGEN_SEED", "42"))
+    outputs = pipe.run(
+        normal_image,
+        seed=int(seed),
+        formats=["mesh"],
+        preprocess_image=False,
+        sparse_structure_sampler_params={
+            "steps": int(os.environ.get("CLAY_HI3DGEN_SS_STEPS", "50")), "cfg_strength": 3,
+        },
+        slat_sampler_params={
+            "steps": int(os.environ.get("CLAY_HI3DGEN_SLAT_STEPS", "6")), "cfg_strength": 3,
+        },
+    )
+    mesh = outputs["mesh"][0].to_trimesh(transform_pose=True)
+    if target_tris and hasattr(mesh, "faces") and len(mesh.faces) > target_tris:
+        try:
+            mesh = mesh.simplify_quadric_decimation(target_tris)
+        except Exception:  # noqa: BLE001 — decimation best-effort
+            pass
+    buf = io.BytesIO()
+    mesh.export(buf, file_type="glb")
+    return buf.getvalue(), _count_faces(mesh)
+
+
 def generate(
     provider: str,
     mode: str,
@@ -156,6 +222,14 @@ def generate(
         raise RuntimeError(
             "Hunyuan3D text-to-3D is not wired yet (image-to-3D is)."
         )
+    if provider == "hi3dgen":
+        if mode == "image":
+            if not image_b64:
+                raise RuntimeError("image_b64 is required for image-to-3D")
+            return _hi3dgen_image_to_3d(
+                image_b64, target_tris=opts.get("target_tris"), seed=opts.get("seed")
+            )
+        raise RuntimeError("Hi3DGen is image-only (no text-to-3D).")
     raise RuntimeError(
         f"model runtime for provider {provider!r} is not wired yet — "
         "contribute it in clay/gpu_backend/runtime.py (needs the gpu extra + weights)."
