@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.15.0](https://github.com/OpenX-Inc/clay/compare/v0.14.0...v0.15.0) (2026-07-08)
+
+
+### Features
+
+* **gpu:** wire Hi3DGen shape runtime (MIT, commercial-OK) ([79bb257](https://github.com/OpenX-Inc/clay/commit/79bb257cda4e9ced22347b7054ce0c1b2487d270))
+
+
+### Documentation
+
+* **benchmarks:** record Hi3DGen shape validation (A10G) ([99f530f](https://github.com/OpenX-Inc/clay/commit/99f530f7253af830e75e0963faf62975d1401d4d))
+
 ## [0.14.0](https://github.com/OpenX-Inc/clay/compare/v0.13.0...v0.14.0) (2026-07-08)
 
 
