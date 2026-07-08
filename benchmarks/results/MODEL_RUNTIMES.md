@@ -51,6 +51,19 @@ GLB (OBJ+MTL+texture re-exported). **Non-commercial weights** — a self-host
 option, not offered by the managed service. (Exit-time `bpy` SIGSEGV is a known
 Blender-module teardown crash, after the result is returned — harmless.)
 
+## Shape — `hi3dgen` (Hi3DGen, MIT — best commercial-OK shape option)
+`modal run benchmarks/run_hi3dgen.py`
+
+| Input | Faces | Verts | Watertight | Size |
+|-------|-------|-------|-----------|------|
+| pot.png | 1,479,468 | 739,802 | ✅ | 35.5 MB |
+
+Normal-driven geometry: `preprocess_image` → StableNormal turbo (yoso
+`yoso-normal-v1-8-1`) normal map → `Hi3DGenPipeline` sparse-structure + SLAT
+sampling → mesh. StableNormal's BiRefNet masking is skipped (Hi3DGen's own
+preprocess already removes the background; override via `CLAY_HI3DGEN_DATATYPE`).
+Raw dense mesh — the orchestrator `PostProcessor` decimates to budget. **MIT
+license → the commercial-OK shape provider** (vs Hunyuan3D non-commercial texture).
+
 ## Pending runtimes
-- `hi3dgen` (Stable-X) — shape provider slot; model runtime TBD.
 - Commercial-OK texture (`paint3d`/`syncmvd`) — pluggable slots, TBD.
