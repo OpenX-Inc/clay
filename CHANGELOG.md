@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.14.0](https://github.com/OpenX-Inc/clay/compare/v0.13.0...v0.14.0) (2026-07-08)
+
+
+### Features
+
+* **bench:** run_texture validation + texture results ([f621e17](https://github.com/OpenX-Inc/clay/commit/f621e17118ff7d4e550fb94519bf47a5158d6363))
+* **gpu-backend:** shared Hunyuan base + paint image (rasterizer, mesh-painter, RealESRGAN, bpy) ([66cc2a1](https://github.com/OpenX-Inc/clay/commit/66cc2a174a22adddf4314ba982a80a7189c42b90))
+* **gpu-backend:** wire Hunyuan3D-Paint texture runtime (image→textured GLB; validated on A10G) ([16f5110](https://github.com/OpenX-Inc/clay/commit/16f5110662cff64071c6537595001337387d3c8d))
+* **providers:** register hunyuanpaint texture provider (non-commercial, self-host) ([4833cce](https://github.com/OpenX-Inc/clay/commit/4833cce27861769d9ba2b4f690eb8cf2a1b75abe))
+
 ## [0.13.0](https://github.com/OpenX-Inc/clay/compare/v0.12.0...v0.13.0) (2026-07-08)
 
 
