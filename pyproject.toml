@@ -1,6 +1,6 @@
 [project]
 name = "clay"
-version = "0.15.0"
+version = "0.16.0"
 description = "OpenX Clay — open-source image/text → game-ready 3D assets. Meshy/Rodin, but yours."
 readme = "README.md"
 license = { text = "MIT" }
