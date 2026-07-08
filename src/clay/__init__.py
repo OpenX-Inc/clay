@@ -1,3 +1,3 @@
 """OpenX Clay — open-source image/text → game-ready 3D assets."""
 
-__version__ = "0.11.0"
+__version__ = "0.12.0"
