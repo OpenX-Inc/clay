@@ -93,12 +93,39 @@ def create_app() -> Starlette:
     return Starlette(routes=[Mount("/mcp", app=handle)], lifespan=lifespan)
 
 
-def run(host: str | None = None, port: int | None = None) -> None:
+def run(
+    host: str | None = None,
+    port: int | None = None,
+    workers: int = 1,
+    timeout_keep_alive: int | None = None,
+) -> None:
+    """Serve the MCP app over streamable HTTP.
+
+    ``workers > 1`` runs uvicorn with that many worker processes for concurrent
+    serving. This is safe because ``create_app()`` builds the session manager
+    with ``stateless=True`` — there is no cross-worker session affinity, so
+    parallel callers can be handled by any worker. Multiple processes can't
+    share a pre-built app instance, so we hand uvicorn the factory import
+    string instead.
+    """
     import uvicorn
 
     host = host or os.environ.get("CLAY_MCP_HOST", "127.0.0.1")
     port = port or int(os.environ.get("CLAY_MCP_PORT", "8770"))
-    uvicorn.run(create_app(), host=host, port=port)
+
+    kwargs: dict = {"host": host, "port": port}
+    if timeout_keep_alive is not None:
+        kwargs["timeout_keep_alive"] = timeout_keep_alive
+
+    if workers and workers > 1:
+        uvicorn.run(
+            "clay.mcp_server.server:create_app",
+            factory=True,
+            workers=workers,
+            **kwargs,
+        )
+    else:
+        uvicorn.run(create_app(), **kwargs)
 
 
 if __name__ == "__main__":
