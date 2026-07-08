@@ -16,6 +16,8 @@ outputs/
 *.fbx
 *.obj
 *.ply
+# ...but DO track benchmark result meshes so users can see real generations
+!benchmarks/**/*.glb
 # Env / secrets
 .env
 config/config.toml

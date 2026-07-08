@@ -2,8 +2,9 @@
 
 Real outputs from the wired model runtimes, validated on **Modal A10G**. Reproduce
 with the `benchmarks/run_*.py` harnesses (`uv pip install modal` first, then
-`modal run benchmarks/run_<x>.py`). Meshes (`*.glb`) are git-ignored (size) —
-metrics are recorded here; the material maps are committed under `material/`.
+`modal run benchmarks/run_<x>.py`). Result meshes (`*.glb`) and interactive
+model-viewer HTML are committed under `results/` so you can see the real
+generations; material maps are under `material/`.
 
 ## Shape — `trellis2` (TRELLIS-2, MIT, default)
 `modal run benchmarks/run_benchmark.py::suite`
