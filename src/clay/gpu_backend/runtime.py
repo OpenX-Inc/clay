@@ -93,6 +93,40 @@ def _extract_face_count(mesh) -> int:
     return int(shape[0]) if shape is not None else int(len(faces))
 
 
+@functools.lru_cache(maxsize=1)
+def _load_hunyuan3d():
+    """Load the Hunyuan3D-2.1 shape (DiT flow-matching) pipeline. GPU + weights."""
+    from hy3dshape.pipelines import Hunyuan3DDiTFlowMatchingPipeline
+
+    model_id = os.environ.get("CLAY_HUNYUAN_MODEL", "tencent/Hunyuan3D-2.1")
+    return Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(model_id)
+
+
+def _hunyuan3d_image_to_3d(image_b64: str, target_tris: int | None = None) -> tuple[bytes, int]:
+    """Run Hunyuan3D-2.1 image→3D (shape) → (glb_bytes, triangle_count)."""
+    from PIL import Image
+
+    pipe = _load_hunyuan3d()
+    image = Image.open(io.BytesIO(base64.b64decode(image_b64))).convert("RGB")
+    try:
+        from hy3dshape.rembg import BackgroundRemover
+
+        image = BackgroundRemover()(image)
+    except Exception:  # noqa: BLE001 — bg removal optional; pipeline may handle it
+        pass
+
+    result = pipe(image=image, mc_algo="mc")
+    mesh = result[0] if isinstance(result, (list, tuple)) else result
+    if target_tris and hasattr(mesh, "faces") and len(mesh.faces) > target_tris:
+        try:
+            mesh = mesh.simplify_quadric_decimation(target_tris)
+        except Exception:  # noqa: BLE001 — decimation best-effort
+            pass
+    buf = io.BytesIO()
+    mesh.export(buf, file_type="glb")
+    return buf.getvalue(), _count_faces(mesh)
+
+
 def generate(
     provider: str,
     mode: str,
@@ -112,6 +146,14 @@ def generate(
         raise RuntimeError(
             "TRELLIS-2 text-to-3D is not wired yet (image-to-3D is). "
             "Wire the TRELLIS text pipeline in clay/gpu_backend/runtime.py."
+        )
+    if provider == "hunyuan3d":
+        if mode == "image":
+            if not image_b64:
+                raise RuntimeError("image_b64 is required for image-to-3D")
+            return _hunyuan3d_image_to_3d(image_b64, target_tris=opts.get("target_tris"))
+        raise RuntimeError(
+            "Hunyuan3D text-to-3D is not wired yet (image-to-3D is)."
         )
     raise RuntimeError(
         f"model runtime for provider {provider!r} is not wired yet — "
