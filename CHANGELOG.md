@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.12.0](https://github.com/OpenX-Inc/clay/compare/v0.11.0...v0.12.0) (2026-07-08)
+
+
+### Features
+
+* **bench:** run_material — validate the material runtime on Modal ([4c6d0a4](https://github.com/OpenX-Inc/clay/commit/4c6d0a4ddad276631b2e48f41a03bb472534ef30))
+* **gpu-backend:** material Modal image (diffusers/StableMaterials) ([4eac139](https://github.com/OpenX-Inc/clay/commit/4eac139a191c23e24294c1357275bc28b2104511))
+* **gpu-backend:** wire StableMaterials material runtime — real tiling PBR maps (validated on A10G) ([c1ddeab](https://github.com/OpenX-Inc/clay/commit/c1ddeabc127536b8dc7be659e967d504c9469d6c))
+* **material:** include height map in the client map set ([ef68a1a](https://github.com/OpenX-Inc/clay/commit/ef68a1abc62e3934f701d31c97b682ebf0a4c9d3))
+
 ## [0.11.0](https://github.com/OpenX-Inc/clay/compare/v0.10.0...v0.11.0) (2026-07-07)
 
 
