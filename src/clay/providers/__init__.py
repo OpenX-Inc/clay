@@ -42,6 +42,12 @@ register_provider(ModelProvider(
 
 # --- texture (UV-aware paint onto an existing mesh) --------------------------
 register_provider(ModelProvider(
+    name="hunyuanpaint", modes=("image",), license="Tencent Hunyuan (non-commercial)",
+    category="texture",
+    description="Hunyuan3D-Paint — image-conditioned PBR texturing. Self-host only "
+    "(non-commercial); not offered by the managed service.",
+))
+register_provider(ModelProvider(
     name="paint3d", modes=("text", "image"), license="research", category="texture",
     description="Paint3D — UV-aware texture painting onto a mesh (verify SOTA).",
 ))
