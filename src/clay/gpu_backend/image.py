@@ -108,8 +108,9 @@ def build_material_image() -> modal.Image:
     )
 
 
-def build_hunyuan_image() -> modal.Image:
-    """Image for Hunyuan3D-2.1 shape (DiT flow-matching). CUDA devel + repo on PYTHONPATH."""
+def _hunyuan_base() -> modal.Image:
+    """Shared Hunyuan3D base (repo + CUDA deps) WITHOUT add_local — builders add
+    their own final steps + add_local_python_source last (Modal requires that order)."""
     return (
         modal.Image.from_registry(
             "nvidia/cuda:12.1.1-devel-ubuntu22.04", add_python="3.11"
@@ -130,13 +131,53 @@ def build_hunyuan_image() -> modal.Image:
         )
         .pip_install("torch==2.4.0", "torchvision==0.19.0", index_url=TORCH_INDEX)
         .pip_install(
-            "diffusers>=0.30.0", "transformers>=4.44.0", "accelerate", "safetensors",
-            "huggingface_hub", "einops", "omegaconf", "opencv-python-headless",
+            # Pinned to Hunyuan3D-2.1's requirements (newer diffusers/transformers
+            # break torch 2.4's torch.library.infer_schema on the attention op).
+            "diffusers==0.30.0", "transformers==4.46.0", "accelerate==1.1.1",
+            "huggingface-hub==0.30.2", "numpy==1.24.4", "torchmetrics==1.6.0",
+            "pytorch-lightning==1.9.5", "torchdiffeq",
+            "safetensors", "einops", "omegaconf", "opencv-python-headless",
             "trimesh", "pymeshlab", "rembg", "onnxruntime", "scikit-image",
-            "ninja", "pillow", "numpy<2", "timm", "sentencepiece", "fast-simplification",
+            "ninja", "pillow", "timm", "sentencepiece", "fast-simplification",
         )
         .run_commands(
             "git clone https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1.git /hunyuan3d"
+        )
+    )
+
+
+def build_hunyuan_image() -> modal.Image:
+    """Image for Hunyuan3D-2.1 shape (DiT flow-matching)."""
+    return _hunyuan_base().add_local_python_source("clay")
+
+
+def build_hunyuan_paint_image() -> modal.Image:
+    """Image for Hunyuan3D-Paint (texture). Extends the shape base with the paint
+    stack: custom_rasterizer (CUDA), the C++ mesh painter, RealESRGAN, and the
+    hy3dpaint package on PYTHONPATH. NON-COMMERCIAL weights (self-host only)."""
+    return (
+        _hunyuan_base()
+        .apt_install(
+            "wget", "libxrender1", "libxi6", "libxxf86vm1", "libxfixes3",
+            "libxkbcommon0", "libsm6", "libice6", "libxext6", "libgomp1",
+            "libopengl0", "libglu1-mesa",
+        )
+        .pip_install(
+            "realesrgan", "basicsr", "pybind11", "facexlib", "gfpgan", "xatlas",
+            "bpy==4.2.0",
+        )
+        .env({"PYTHONPATH": "/hunyuan3d/hy3dpaint:/hunyuan3d/hy3dshape"})
+        .run_commands('pip install -U pip "setuptools<70" wheel')
+        .run_commands(
+            "CC=gcc CXX=g++ pip install --no-build-isolation "
+            "/hunyuan3d/hy3dpaint/custom_rasterizer"
+        )
+        .run_commands(
+            "cd /hunyuan3d/hy3dpaint/DifferentiableRenderer && bash compile_mesh_painter.sh"
+        )
+        .run_commands(
+            "mkdir -p /hunyuan3d/ckpt && wget -q -O /hunyuan3d/ckpt/RealESRGAN_x4plus.pth "
+            "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth"
         )
         .add_local_python_source("clay")
     )
