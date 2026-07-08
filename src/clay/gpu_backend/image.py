@@ -84,3 +84,25 @@ def build_trellis_image() -> modal.Image:
         .pip_install("fast-simplification>=0.1.7", "pygltflib>=1.16.0")
         .add_local_python_source("clay")
     )
+
+
+def build_material_image() -> modal.Image:
+    """Image for the material runtime (StableMaterials — diffusers, no custom CUDA)."""
+    return (
+        modal.Image.debian_slim(python_version="3.12")
+        .apt_install("git", "libgl1", "libglib2.0-0")
+        .pip_install(
+            "torch>=2.2.0",
+            "torchvision",
+            "diffusers>=0.27.0",
+            "transformers>=4.40.0",
+            "accelerate>=0.29.0",
+            "safetensors",
+            "huggingface_hub",
+            "einops",
+            "pillow",
+            "numpy<2",
+        )
+        .env({"HF_HOME": "/models"})
+        .add_local_python_source("clay")
+    )
