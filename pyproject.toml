@@ -42,6 +42,10 @@ dev = [
     "ruff>=0.11.0",
     "pytest>=8.0.0",
 ]
+# Deploy + on-Modal validation tooling (used by `clay deploy` and benchmarks/).
+deploy = [
+    "modal>=0.64.0",
+]
 
 [project.scripts]
 clay = "clay.cli:app"
